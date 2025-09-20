@@ -1,0 +1,111 @@
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+.pnp
+.pnp.js
+
+# Testing
+coverage/
+.nyc_output/
+
+# Build outputs
+dist/
+build/
+out/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Directory for uploaded files
+uploads/
+public/uploads/*
+!public/uploads/.gitkeep
+
+# Directory for certificates
+certificates/
+public/certificates/*
+!public/certificates/.gitkeep
+
+# Directory for temporary files
+temp/
+.temp/
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+*.iml
+.project
+.classpath
+.settings/
+*.sublime-workspace
+*.sublime-project
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Debug logs
+debug.log
+debug/
+
+# Local SSL certificates
+*.pem
+*.key
+*.crt
+
+# Google Cloud credentials
+google-credentials.json
+*-credentials.json
+*.service-account.json
+
+# Docker volumes
+docker/data/
+docker/mongodb/
+.docker/
+
+# JWT keys
+*.key.pub
+*.key.private
+
+# Local database files
+*.sqlite
+*.db
+
+# Cache directories
+.cache/
+.webpack/
+.next/
+.nuxt/
+.gatsby/
+
+# Local configuration
+config.local.js
+config.development.js
+
+# Test files
+__tests__/__snapshots__/
+*.test.js.snap

@@ -1,0 +1,54 @@
+{
+  "name": "event-system-backend",
+  "version": "1.0.0",
+  "description": "Backend for Event Feedback System with Certificate Generation",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
+  },
+  "keywords": [
+    "node",
+    "express",
+    "mongodb",
+    "socket.io",
+    "api"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "compromise": "^14.9.0",
+    "connect-mongo": "^5.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
+    "ejs": "^3.1.9",
+    "express": "^4.18.2",
+    "express-rate-limit": "^6.7.0",
+    "express-session": "^1.17.3",
+    "express-validator": "^7.0.1",
+    "helmet": "^6.0.1",
+    "mongoose": "^7.0.3",
+    "morgan": "^1.10.0",
+    "multer": "^1.4.5-lts.1",
+    "nodemailer": "^6.9.1",
+    "pdf-lib": "^1.17.1",
+    "qrcode": "^1.5.3",
+    "@google-cloud/storage": "^7.0.1",
+    "socket.io": "^4.6.1",
+    "surveyjs-core": "^1.9.100"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.20",
+    "jest": "^29.0.0",
+    "babel-jest": "^29.0.0",
+    "@babel/core": "^7.20.0",
+    "@babel/preset-env": "^7.20.0",
+    "mongodb-memory-server": "^8.10.0",
+    "supertest": "^6.3.0"
+  }
+}
