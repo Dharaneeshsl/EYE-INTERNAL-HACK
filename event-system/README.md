@@ -72,23 +72,6 @@ event-system/
 - `npm run client` - Start only the frontend development server
 - `npm run build` - Build the frontend for production
 
-## Environment Setup
-
-1. Create a `.env` file in the backend directory
-2. Contact the project administrator for the required environment variables
-3. Never commit the `.env` file to version control
-
-Note: The `.env` file contains sensitive configuration. Keep it secure and private.
-SMTP_SECURE=false
-SMTP_USER=your-email@example.com
-SMTP_PASS=your-email-password  # Use app-specific password when possible
-
-Note: The application now uses secure session-based authentication instead of JWT tokens.
-This provides better security and simpler implementation.
-SMTP_USER=your-email@example.com
-SMTP_PASS=your-email-password
-EMAIL_FROM=noreply@yourevent.com
-
 # File Uploads
 MAX_FILE_SIZE=5242880  # 5MB
 ALLOWED_FILE_TYPES=application/pdf,image/jpeg,image/png
