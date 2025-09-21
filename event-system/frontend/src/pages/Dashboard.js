@@ -3,6 +3,8 @@ import styled from 'styled-components';
 import Sidebar from '../components/layout/Sidebar';
 import Header from '../components/layout/Header';
 import { StatsCard, SalesChart } from '../components/dashboard/DashboardWidgets';
+import SatisfactionWidget from '../components/dashboard/SatisfactionWidget';
+import ReferralWidget from '../components/dashboard/ReferralWidget';
 
 const DashboardContainer = styled.div`
   background-color: ${({ theme }) => theme.colors.background};
