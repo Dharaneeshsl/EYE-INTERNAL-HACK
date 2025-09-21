@@ -30,7 +30,7 @@ const Circle = styled.div`
   border-radius: 50%;
   background: conic-gradient(
     ${({ theme, score }) => theme.colors.secondary} ${props => props.score * 10}%,
-    ${({ theme }) => theme.colors.background} ${props => props.score * 10}% 100%
+    ${({ theme, score }) => theme.colors.background} ${props => props.score * 10}% 100%
   );
   display: flex;
   align-items: center;

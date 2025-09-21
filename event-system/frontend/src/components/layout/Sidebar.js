@@ -30,18 +30,18 @@ const MenuItem = styled.div`
   display: flex;
   align-items: center;
   padding: ${({ theme }) => theme.spacing.md};
-  color: ${({ theme, isActive }) => 
+  color: ${({ isActive, theme }) => 
     isActive ? theme.colors.text.primary : theme.colors.text.secondary};
   cursor: pointer;
   transition: all 0.3s ease;
   background-color: ${({ isActive }) => 
     isActive ? 'rgba(255, 255, 255, 0.1)' : 'transparent'};
-
+  
   &:hover {
     background-color: rgba(255, 255, 255, 0.1);
     color: ${({ theme }) => theme.colors.text.primary};
   }
-
+  
   svg {
     margin-right: ${({ theme }) => theme.spacing.md};
   }
@@ -50,7 +50,7 @@ const MenuItem = styled.div`
 const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-
+  
   const menuItems = [
     { path: '/dashboard', label: 'Dashboard', icon: <Dashboard /> },
     { path: '/forms/builder', label: 'Form Builder', icon: <ListAlt /> },
