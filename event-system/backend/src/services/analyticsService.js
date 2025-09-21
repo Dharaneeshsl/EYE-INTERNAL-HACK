@@ -13,18 +13,24 @@ export class AnalyticsService {
    * @returns {Promise<Object>} The response statistics
    */
   static async getFormStatistics(formId) {
+    if (!mongoose.Types.ObjectId.isValid(formId)) {
+      throw new ApiError(400, 'Invalid form ID format');
+    }
+
     try {
       // Use aggregation for better performance
       const responses = await Response.aggregate([
-        { $match: { formId: mongoose.Types.ObjectId(formId) } },
-        { $group: {
-          _id: null,
-          totalResponses: { $sum: 1 },
-          averageTimeSpent: { $avg: '$time' },
-          sentiments: { $push: '$sentiment' },
-          isCompleteCount: { $sum: { $cond: ['$isComplete', 1, 0] } },
-          certificatesSentCount: { $sum: { $cond: ['$certificateSent', 1, 0] } }
-        }}
+        { $match: { formId: new mongoose.Types.ObjectId(formId) } },
+        { 
+          $group: {
+            _id: null,
+            totalResponses: { $sum: 1 },
+            averageTimeSpent: { $avg: '$time' },
+            sentiments: { $push: '$sentiment' },
+            isCompleteCount: { $sum: { $cond: ['$isComplete', 1, 0] } },
+            certificatesSentCount: { $sum: { $cond: ['$certificateSent', 1, 0] } }
+          }
+        }
       ]);
 
       if (!responses.length) {
@@ -64,7 +70,7 @@ export class AnalyticsService {
       };
     } catch (error) {
       console.error('Error generating form statistics:', error);
-      throw error;
+      throw new ApiError(500, 'Failed to generate form statistics', true, error);
     }
   }
 
@@ -83,11 +89,11 @@ export class AnalyticsService {
       const totalResponses = responses.length;
       const averageResponsesPerForm = totalForms > 0 ? totalResponses / totalForms : 0;
 
-      const responsesByDay = {};
-      responses.forEach(response => {
+      const responsesByDay = responses.reduce((acc, response) => {
         const date = response.createdAt.toISOString().split('T')[0];
-        responsesByDay[date] = (responsesByDay[date] || 0) + 1;
-      });
+        acc[date] = (acc[date] || 0) + 1;
+        return acc;
+      }, {});
 
       // Get forms with highest response rates
       const formStats = await Promise.all(forms.map(async form => {
@@ -99,129 +105,25 @@ export class AnalyticsService {
         };
       }));
 
-      formStats.sort((a, b) => b.responseCount - a.responseCount);
-      const topForms = formStats.slice(0, 5);
+      // Sort forms by response count (descending) and get top 5
+      const topForms = [...formStats]
+        .sort((a, b) => b.responseCount - a.responseCount)
+        .slice(0, 5);
 
-      // Overall sentiment analysis
-      const sentimentStats = {
-        positive: responses.filter(r => r.sentiment?.label === 'positive').length,
-        neutral: responses.filter(r => r.sentiment?.label === 'neutral').length,
-        negative: responses.filter(r => r.sentiment?.label === 'negative').length
-      };
-
-      return {
-        overview: {
-          totalForms,
-          totalResponses,
-          averageResponsesPerForm,
-          certificatesSent: responses.filter(r => r.certificateSent).length
-        },
-        responsesByDay,
-        topForms,
-        sentimentStats,
-        lastUpdated: new Date()
-      };
-    } catch (error) {
-      console.error('Error generating aggregated statistics:', error);
-      throw error;
-    }
-  }
-}
-
-export default AnalyticsService;
-          { $group: {
-            _id: null,
-            total: { $sum: 1 },
-            avgTime: { $avg: '$time' },
-            sentiment: {
-              $push: {
-                label: '$sentiment.label',
-                score: '$sentiment.score'
-              }
-            }
-          }},
-          { $project: {
-            _id: 0,
-            total: 1,
-            avgTime: 1,
-            sentiment: 1
-          }}
-        ])
-      ]);
-
-      if (!responses.length) return { total: 0, avgTime: 0 };
-
-      const stats = responses[0];
-      const sentiment = stats.sentiment.reduce((acc, s) => {
-        acc[s.label] = (acc[s.label] || 0) + 1;
+      // Calculate overall sentiment distribution
+      const allResponses = await Response.find({ isComplete: true });
+      const sentimentStats = allResponses.reduce((acc, response) => {
+        const label = response.sentiment?.label || 'unknown';
+        acc[label] = (acc[label] || 0) + 1;
         return acc;
       }, {});
 
       return {
         overview: {
-          totalResponses,
-          averageTimeSpent,
-          completionRate: (responses.filter(r => r.isComplete).length / responses.length) * 100,
-          certificatesSent: responses.filter(r => r.certificateSent).length
-        },
-        questionStats,
-        deviceStats,
-        sentimentStats,
-        lastUpdated: new Date()
-      };
-    } catch (error) {
-      console.error('Error generating form statistics:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Get aggregated statistics across all forms
-   * @returns {Promise<Object>} The aggregated statistics
-   */
-  static async getAggregatedStatistics() {
-    try {
-      const [responses, forms] = await Promise.all([
-        Response.find({ isComplete: true }),
-        Form.find({ isPublished: true })
-      ]);
-
-      const totalForms = forms.length;
-      const totalResponses = responses.length;
-      const averageResponsesPerForm = totalResponses / totalForms;
-
-      const responsesByDay = {};
-      responses.forEach(response => {
-        const date = response.createdAt.toISOString().split('T')[0];
-        responsesByDay[date] = (responsesByDay[date] || 0) + 1;
-      });
-
-      // Get forms with highest response rates
-      const formStats = await Promise.all(forms.map(async form => {
-        const responseCount = await Response.countDocuments({ formId: form._id });
-        return {
-          formId: form._id,
-          title: form.title,
-          responseCount
-        };
-      }));
-
-      formStats.sort((a, b) => b.responseCount - a.responseCount);
-      const topForms = formStats.slice(0, 5);
-
-      // Overall sentiment analysis
-      const sentimentStats = {
-        positive: responses.filter(r => r.sentiment?.label === 'positive').length,
-        neutral: responses.filter(r => r.sentiment?.label === 'neutral').length,
-        negative: responses.filter(r => r.sentiment?.label === 'negative').length
-      };
-
-      return {
-        overview: {
           totalForms,
           totalResponses,
-          averageResponsesPerForm,
-          certificatesSent: responses.filter(r => r.certificateSent).length
+          averageResponsesPerForm: Math.round(averageResponsesPerForm * 100) / 100, // Round to 2 decimal places
+          certificatesSent: allResponses.filter(r => r.certificateSent).length
         },
         responsesByDay,
         topForms,
@@ -230,7 +132,7 @@ export default AnalyticsService;
       };
     } catch (error) {
       console.error('Error generating aggregated statistics:', error);
-      throw error;
+      throw new ApiError(500, 'Failed to generate aggregated statistics', true, error);
     }
   }
 }
