@@ -74,7 +74,6 @@ jspm_packages/
 
 # Gatsby files
 .cache/
-public
 
 # vuepress build output
 .vuepress/dist
@@ -168,7 +167,7 @@ yarn-error.log*
 
 # Gatsby files
 .cache/
-public
+
 
 # vuepress build output
 .vuepress/dist
@@ -241,7 +240,6 @@ npm-debug.log*
 
 # Gatsby files
 .cache/
-public
 
 # vuepress build output
 .vuepress/dist
