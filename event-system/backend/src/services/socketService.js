@@ -1,27 +1,60 @@
-import jwt from 'jsonwebtoken';
 import { Server } from 'socket.io';
 import { ApiError } from '../utils/errors.js';
+import { sessionMiddleware } from '../config/session.js';
+import { parse as parseCookie } from 'cookie';
+import MongoStore from 'connect-mongo';
 
 /**
  * Initialize Socket.io server and setup event handlers
  * @param {Server} io - Socket.io server instance
  */
 export const initializeSocket = (io) => {
-  // Middleware for authentication
+  // Create session store
+  const sessionStore = MongoStore.create({
+    mongoUrl: process.env.MONGO_URI,
+    ttl: 24 * 60 * 60
+  });
+
+  // Middleware to handle session
   io.use(async (socket, next) => {
     try {
-      const token = socket.handshake.auth.token || socket.handshake.query.token;
-      
-      if (!token) {
-        return next(new ApiError('Authentication token required', 401));
+      const cookie = socket.handshake.headers.cookie;
+      if (!cookie) {
+        return next(new ApiError('No session cookie', 401));
       }
+
+      const parsed = parseCookie(cookie);
+      const sessionID = parsed['connect.sid']?.split('.')[0].slice(2);
       
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      socket.user = decoded;
+      if (!sessionID) {
+        return next(new ApiError('No session ID', 401));
+      }
+
+      const session = await new Promise((resolve, reject) => {
+        sessionStore.get(sessionID, (err, session) => {
+          if (err) reject(err);
+          else resolve(session);
+        });
+      });
+
+      if (!session?.user) {
+        return next(new ApiError('Not authenticated', 401));
+      }
+
+      socket.user = session.user;
       next();
     } catch (error) {
-      next(new ApiError('Invalid authentication token', 401));
+      next(new ApiError('Session verification failed', 401));
     }
+  });
+
+  // Middleware for authentication
+  io.use((socket, next) => {
+    if (!socket.handshake.session.user) {
+      return next(new ApiError('Authentication required', 401));
+    }
+    socket.user = socket.handshake.session.user;
+    next();
   });
 
   io.on('connection', (socket) => {

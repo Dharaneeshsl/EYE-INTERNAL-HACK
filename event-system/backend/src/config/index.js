@@ -1,71 +1,38 @@
 import dotenv from 'dotenv';
-
-// Load environment variables
 dotenv.config();
 
 const config = {
-  // Application
-  app: {
-    env: process.env.NODE_ENV || 'development',
-    port: parseInt(process.env.PORT || '5000', 10),
-    apiVersion: process.env.API_VERSION || 'v1',
-    baseUrl: process.env.BASE_URL || 'http://localhost:5000',
-    frontendUrl: process.env.FRONTEND_URL || 'http://localhost:3000'
-  },
-
-  // MongoDB
+  app: { port: +process.env.PORT || 5000 },
   db: {
-    uri: process.env.MONGO_URI || 'mongodb://localhost:27017/event_feedback',
-    name: process.env.MONGO_DB_NAME || 'event_feedback',
-    options: {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-      authSource: process.env.MONGO_AUTH_SOURCE || 'admin'
-    }
+    uri: process.env.MONGO_URI,
+    options: { useNewUrlParser: true, useUnifiedTopology: true }
   },
-
-  // Session
   session: {
     secret: process.env.SESSION_SECRET,
-    name: process.env.SESSION_NAME || 'event_system_sid',
-    maxAge: parseInt(process.env.SESSION_MAX_AGE || '86400000', 10),
-    secure: process.env.SESSION_SECURE === 'true',
+    name: process.env.SESSION_NAME,
+    maxAge: +process.env.SESSION_MAX_AGE || 24 * 60 * 60 * 1000,
+    secure: process.env.NODE_ENV === 'production',
     sameSite: process.env.SESSION_SAME_SITE || 'lax'
-  },
-
-  // JWT
-  jwt: {
-    secret: process.env.JWT_SECRET,
-    expiresIn: process.env.JWT_EXPIRES_IN || '30d',
-    refreshSecret: process.env.JWT_REFRESH_SECRET,
-    refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d'
   },
 
   // CORS
   cors: {
-    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
-    methods: process.env.CORS_METHODS || 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    credentials: process.env.CORS_CREDENTIALS === 'true'
-  },
-
-  // Rate Limiting
-  rateLimit: {
-    windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10),
-    max: parseInt(process.env.RATE_LIMIT_MAX || '100', 10),
-    message: process.env.RATE_LIMIT_MESSAGE || 'Too many requests'
+    origin: process.env.CORS_ORIGIN,
+    methods: process.env.CORS_METHODS,
+    credentials: true
   },
 
   // Email
   email: {
     host: process.env.SMTP_HOST,
-    port: parseInt(process.env.SMTP_PORT || '587', 10),
+    port: parseInt(process.env.SMTP_PORT, 10),
     secure: process.env.SMTP_SECURE === 'true',
     auth: {
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASS
     },
     from: {
-      name: process.env.EMAIL_FROM_NAME || 'Event System',
+      name: process.env.EMAIL_FROM_NAME,
       email: process.env.EMAIL_FROM
     }
   },

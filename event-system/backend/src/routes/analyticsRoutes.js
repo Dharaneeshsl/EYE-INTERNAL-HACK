@@ -1,5 +1,5 @@
 import express from 'express';
-import { AnalyticsController } from '../controllers/analyticsController.js';
+import { analyticsController } from '../controllers/analyticsController.js';
 import { isAuthenticated, isAdmin } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -8,9 +8,9 @@ const router = express.Router();
 router.use(isAuthenticated);
 
 // Get statistics for a specific form
-router.get('/forms/:formId', AnalyticsController.getFormStatistics);
+router.get('/forms/:formId', analyticsController.getFormStatistics);
 
 // Get aggregated statistics (admin only)
-router.get('/aggregate', isAdmin, AnalyticsController.getAggregatedStatistics);
+router.get('/aggregate', isAdmin, analyticsController.getAggregatedStatistics);
 
 export default router;

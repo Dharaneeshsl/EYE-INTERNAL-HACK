@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, memo } from 'react';
 import styled from 'styled-components';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -26,7 +26,7 @@ const FormTitle = styled.input`
   padding: ${({ theme }) => theme.spacing.sm};
   width: 100%;
   margin-bottom: ${({ theme }) => theme.spacing.md};
-
+  
   &:focus {
     outline: none;
     border-bottom-color: ${({ theme }) => theme.colors.secondary};

@@ -1,38 +1,43 @@
-import http from 'http';
 import express from 'express';
+import { createServer } from 'http';
 import { Server } from 'socket.io';
-import session from 'express-session';
-import MongoStore from 'connect-mongo';
-import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
-import dotenv from 'dotenv';
+import { sessionMiddleware } from './config/session.js';
 import { initializeSocket } from './services/socketService.js';
 import { connectDB } from './config/db.js';
 import formRoutes from './routes/formRoutes.js';
 import authRoutes from './routes/authRoutes.js';
-import certificateRoutes from './routes/certificateRoutes.js';
+import config from './config/index.js';
 
-// Load environment variables
-dotenv.config();
-
-// Initialize Express app
 const app = express();
-const server = http.createServer(app);
+const server = createServer(app);
 
-// Set up WebSocket server
-global.io = new Server(server, {
+// Set up WebSocket server with session handling
+const io = new Server(server, {
   cors: {
     origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
     methods: ['GET', 'POST'],
     credentials: true
-  },
-  path: '/socket.io',
-  serveClient: false,
-  pingTimeout: 30000,
-  pingInterval: 25000,
-  cookie: false
+  }
 });
+
+// Convert a middleware to Socket.IO middleware
+const wrap = middleware => (socket, next) => middleware(socket.request, {}, next);
+
+// Apply session middleware to Socket.IO
+io.use(wrap(sessionMiddleware));
+
+// Add authentication middleware to Socket.IO
+io.use((socket, next) => {
+  if (socket.request.session && socket.request.session.user) {
+    next();
+  } else {
+    next(new Error('Unauthorized'));
+  }
+});
+
+global.io = io;
 
 // Initialize Socket.IO
 initializeSocket(global.io);
@@ -40,33 +45,27 @@ initializeSocket(global.io);
 // Connect to MongoDB
 connectDB();
 
-// Middleware
-app.use(helmet());
-app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
-  credentials: true
-}));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// Session configuration
-app.use(session({
-  name: 'event_system.sid',
-  secret: process.env.SESSION_SECRET || 'your-secret-key',
-  resave: false,
-  saveUninitialized: false,
-  store: MongoStore.create({
-    mongoUrl: process.env.MONGO_URI,
-    ttl: 24 * 60 * 60, // 1 day
-    autoRemove: 'native'
-  }),
-  cookie: {
-    maxAge: 24 * 60 * 60 * 1000, // 1 day
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
+// Security middleware
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+  contentSecurityPolicy: {
+    directives: {
+      'connect-src': ["'self'", process.env.CORS_ORIGIN || 'http://localhost:3000']
+    }
   }
 }));
+
+// CORS configuration
+app.use(cors({
+  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
+
+// Body parsing middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Logging
 if (process.env.NODE_ENV === 'development') {
@@ -76,7 +75,6 @@ if (process.env.NODE_ENV === 'development') {
 // Routes
 app.use('/api/forms', formRoutes);
 app.use('/api/auth', authRoutes);
-app.use('/api/certificates', certificateRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -84,7 +82,7 @@ app.get('/health', (req, res) => {
     status: 'ok',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
-    environment: process.env.NODE_ENV || 'development'
+    environment: process.env.NODE_ENV
   });
 });
 
@@ -115,7 +113,7 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
   console.log(`\n🚀 Server running in ${process.env.NODE_ENV || 'development'} mode`);
-  console.log(`🔗 API URL: http://localhost:${PORT}`);
+  console.log(`🔗 API URL: ${process.env.BASE_URL}`);
   console.log(`🌐 WebSocket URL: ws://localhost:${PORT}/socket.io\n`);
   console.log('Press CTRL+C to stop the server\n');
 });

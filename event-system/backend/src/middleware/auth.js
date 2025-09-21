@@ -1,18 +1,15 @@
-import jwt from 'jsonwebtoken';
-import User from '../models/User.js';
 import { UnauthenticatedError, UnauthorizedError } from '../utils/errors.js';
 
-// Simplified authentication middleware
+// Session-based authentication middleware
 export const isAuthenticated = async (req, res, next) => {
   try {
-    const token = req.headers.authorization?.split(' ')[1];
-    if (!token) return res.status(401).json({ error: 'No token' });
-    
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = { id: decoded.id, role: decoded.role };
+    if (!req.session.user) {
+      throw new UnauthenticatedError('Authentication required');
+    }
+    req.user = req.session.user;
     next();
   } catch (error) {
-    res.status(401).json({ error: 'Invalid token' });
+    next(error);
   }
 };
 

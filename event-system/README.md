@@ -33,8 +33,9 @@ event-system/
    ```
 
 2. **Set up environment variables**
-   - Create a `.env` file in the root directory
-   - Copy the contents from `.env.example` and update with your configuration
+   - Create a `.env` file in the backend directory
+   - Configure the environment variables as shown in the Environment Variables section
+   - Make sure to set a strong SESSION_SECRET for security
 
 3. **Install dependencies**
 
@@ -71,33 +72,19 @@ event-system/
 - `npm run client` - Start only the frontend development server
 - `npm run build` - Build the frontend for production
 
-## Environment Variables
+## Environment Setup
 
-Create a `.env` file in the root directory with the following variables:
+1. Create a `.env` file in the backend directory
+2. Contact the project administrator for the required environment variables
+3. Never commit the `.env` file to version control
 
-```env
-# Server
-NODE_ENV=development
-PORT=5000
-
-# MongoDB
-MONGO_URI=mongodb://localhost:27017/event_feedback
-
-# Session
-SESSION_SECRET=your-session-secret
-SESSION_NAME=event_system_sid
-
-# CORS
-CORS_ORIGIN=http://localhost:3001
-
-# Rate Limiting
-RATE_LIMIT_WINDOW_MS=900000  # 15 minutes
-RATE_LIMIT_MAX=100
-
-# Email (for certificate delivery)
-SMTP_HOST=smtp.example.com
-SMTP_PORT=587
+Note: The `.env` file contains sensitive configuration. Keep it secure and private.
 SMTP_SECURE=false
+SMTP_USER=your-email@example.com
+SMTP_PASS=your-email-password  # Use app-specific password when possible
+
+Note: The application now uses secure session-based authentication instead of JWT tokens.
+This provides better security and simpler implementation.
 SMTP_USER=your-email@example.com
 SMTP_PASS=your-email-password
 EMAIL_FROM=noreply@yourevent.com

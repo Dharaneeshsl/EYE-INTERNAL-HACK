@@ -1,31 +1,23 @@
 import mongoose from 'mongoose';
+const { Schema } = mongoose;
 
-const questionSchema = new mongoose.Schema({
-  questionId: String,
-  questionType: {
-    type: String,
+const questionSchema = new Schema({
+  qId: { type: String, required: true },
+  type: { 
+    type: String, 
     enum: ['text', 'textarea', 'radio', 'checkbox', 'dropdown', 'rating', 'scale', 'date', 'email'],
+    required: true
   },
-  questionText: String,
-  description: String,
-  required: Boolean,
-  options: [{
-    value: String,
-    label: String
-  }],
-  validation: {
-    min: Number,
-    max: Number,
-    pattern: String
-  },
-  order: Number,
-  conditionalLogic: {
-    dependsOn: String,
-    condition: {
-      type: String,
-      enum: ['equals', 'notEquals']
-    },
-    value: mongoose.Schema.Types.Mixed
+  text: { type: String, required: true },
+  desc: String,
+  req: { type: Boolean, default: false },
+  opts: [{ val: String, lbl: String }],
+  valid: { min: Number, max: Number, pat: String },
+  ord: { type: Number, index: true },
+  cond: {
+    dep: String,
+    op: { type: String, enum: ['eq', 'neq'] },
+    val: Schema.Types.Mixed
   }
 });
 

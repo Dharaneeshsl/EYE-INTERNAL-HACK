@@ -3,14 +3,17 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { ThemeProvider } from 'styled-components';
 import { theme } from './theme/theme';
 import GlobalStyles from './theme/GlobalStyles';
-import DashboardLayout from './components/layout/DashboardLayout';
-import Dashboard from './pages/Dashboard';
-import Login from './pages/auth/Login';
-import CertificateManagement from './components/certificates/CertificateManagement';
-import ResponseAnalytics from './components/analytics/ResponseAnalytics';
-import FormBuilder from './components/forms/FormBuilder';
+import { lazyLoad } from './components/common/LazyWrapper';
 
-function App() {
+// Lazy loaded components
+const DashboardLayout = lazyLoad(() => import('./components/layout/DashboardLayout'));
+const Dashboard = lazyLoad(() => import('./pages/Dashboard'));
+const Login = lazyLoad(() => import('./pages/auth/Login'));
+const CertificateManagement = lazyLoad(() => import('./components/certificates/CertificateManagement'));
+const ResponseAnalytics = lazyLoad(() => import('./components/analytics/ResponseAnalytics'));
+const FormBuilder = lazyLoad(() => import('./components/forms/FormBuilder'));
+
+const App = () => {
   // Mock authentication state - replace with real auth logic
   const isAuthenticated = true;
 
@@ -19,15 +22,10 @@ function App() {
       <GlobalStyles />
       <Router>
         <Routes>
-          {/* Public Routes */}
-          <Route 
-            path="/login" 
-            element={isAuthenticated ? <Navigate to="/dashboard" /> : <Login />} 
-          />
-
-          {/* Protected Routes */}
-          <Route 
-            path="/dashboard" 
+          <Route path="/login" element={
+            isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />
+          } />
+          <Route path="/dashboard"
             element={isAuthenticated ? (
               <DashboardLayout>
                 <Dashboard />

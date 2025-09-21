@@ -87,10 +87,6 @@ docker/data/
 docker/mongodb/
 .docker/
 
-# JWT keys
-*.key.pub
-*.key.private
-
 # Local database files
 *.sqlite
 *.db
