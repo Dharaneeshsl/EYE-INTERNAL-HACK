@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
-import Sidebar from '../components/layout/Sidebar';
-import Header from '../components/layout/Header';
+import Sidebar from './Sidebar';
+import Header from './Header';
 
 const DashboardLayout = ({ children }) => {
   const Layout = styled.div`

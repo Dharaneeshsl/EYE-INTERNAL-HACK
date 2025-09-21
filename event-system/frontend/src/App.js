@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from 'styled-components';
-import { theme } from './theme/theme';
+import theme from './theme/theme';
 import GlobalStyles from './theme/GlobalStyles';
 import { lazyLoad } from './components/common/LazyWrapper';
 

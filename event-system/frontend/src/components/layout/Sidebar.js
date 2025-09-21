@@ -30,7 +30,7 @@ const MenuItem = styled.div`
   display: flex;
   align-items: center;
   padding: ${({ theme }) => theme.spacing.md};
-  color: ${({ isActive }) => 
+  color: ${({ theme, isActive }) => 
     isActive ? theme.colors.text.primary : theme.colors.text.secondary};
   cursor: pointer;
   transition: all 0.3s ease;
