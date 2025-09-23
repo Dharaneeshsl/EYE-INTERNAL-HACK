@@ -5,7 +5,7 @@ import App from './App';
 import { ThemeProvider as StyledThemeProvider } from 'styled-components';
 import { ThemeProvider as MuiThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import { theme as customTheme } from './theme/theme';
+import theme from './theme/theme';
 
 const muiTheme = createTheme();
 
@@ -14,7 +14,7 @@ root.render(
   <React.StrictMode>
     <MuiThemeProvider theme={muiTheme}>
       <CssBaseline />
-      <StyledThemeProvider theme={customTheme}>
+      <StyledThemeProvider theme={theme}>
         <App />
       </StyledThemeProvider>
     </MuiThemeProvider>
