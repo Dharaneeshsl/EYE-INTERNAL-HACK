@@ -1,47 +1,82 @@
 import React from 'react';
 import styled from 'styled-components';
+import { Menu, Search, Settings, Notifications } from '@mui/icons-material';
 
-const HeaderContainer = styled.div`
+const HeaderContainer = styled.header`
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: ${({ isOpen }) => (isOpen ? '240px' : '0')};
   height: 70px;
-  background-color: ${({ theme }) => theme.colors.cardBg};
-  margin-left: 240px;
-  padding: ${({ theme }) => theme.spacing.md} ${({ theme }) => theme.spacing.lg};
+  background-color: ${({ theme }) => theme.colors.background};
   display: flex;
   align-items: center;
   justify-content: space-between;
-  box-shadow: ${({ theme }) => theme.shadows.card};
+  padding: 0 ${({ theme }) => theme.spacing.lg};
+  z-index: 100;
+  transition: left 0.3s ease-in-out;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    left: 0;
+    padding: 0 ${({ theme }) => theme.spacing.md};
+  }
+`;
+
+const LeftSection = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.md};
+`;
+
+const IconButton = styled.button`
+  background: transparent;
+  border: none;
+  color: ${({ theme }) => theme.colors.text.secondary};
+  cursor: pointer;
+  padding: ${({ theme }) => theme.spacing.sm};
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+
+  &:hover {
+    color: ${({ theme }) => theme.colors.primary};
+    background-color: ${({ theme }) => theme.colors.cardBg};
+  }
+`;
+
+const MenuButton = styled(IconButton)`
+  display: none;
+  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    display: flex;
+  }
 `;
 
 const SearchInput = styled.div`
-  position: relative;
-  width: 300px;
-`;
+  display: flex;
+  align-items: center;
+  background-color: ${({ theme }) => theme.colors.cardBg};
+  border-radius: ${({ theme }) => theme.borderRadius.lg};
+  padding: ${({ theme }) => theme.spacing.sm} ${({ theme }) => theme.spacing.md};
+  box-shadow: ${({ theme }) => theme.shadows.card};
+  width: 320px;
 
-const SearchIcon = styled.span`
-  position: absolute;
-  left: ${({ theme }) => theme.spacing.md};
-  top: 50%;
-  transform: translateY(-50%);
-  color: ${({ theme }) => theme.colors.text.secondary};
+  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
+    display: none;
+  }
 `;
 
 const Input = styled.input`
-  background-color: ${({ theme }) => theme.colors.background};
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  border-radius: ${({ theme }) => theme.borderRadius.lg};
-  padding: ${({ theme }) => theme.spacing.sm} ${({ theme }) => theme.spacing.md};
-  padding-left: 40px;
+  background: transparent;
+  border: none;
   color: ${({ theme }) => theme.colors.text.primary};
-  width: 100%;
   font-size: 14px;
+  margin-left: ${({ theme }) => theme.spacing.sm};
+  width: 100%;
 
   &::placeholder {
     color: ${({ theme }) => theme.colors.text.secondary};
-  }
-
-  &:focus {
-    outline: none;
-    border-color: ${({ theme }) => theme.colors.primary};
   }
 `;
 
@@ -49,22 +84,6 @@ const UserSection = styled.div`
   display: flex;
   align-items: center;
   gap: ${({ theme }) => theme.spacing.md};
-`;
-
-const UserInfo = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-`;
-
-const UserName = styled.span`
-  color: ${({ theme }) => theme.colors.text.primary};
-  font-weight: 500;
-`;
-
-const UserRole = styled.span`
-  color: ${({ theme }) => theme.colors.text.secondary};
-  font-size: 12px;
 `;
 
 const UserAvatar = styled.div`
@@ -80,37 +99,26 @@ const UserAvatar = styled.div`
   cursor: pointer;
 `;
 
-const IconButton = styled.button`
-  background: none;
-  border: none;
-  color: ${({ theme }) => theme.colors.text.secondary};
-  cursor: pointer;
-  padding: ${({ theme }) => theme.spacing.sm};
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background-color 0.2s;
-
-  &:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-  }
-`;
-
-const Header = () => {
+const Header = ({ isOpen, setOpen }) => {
   return (
-    <HeaderContainer>
-      <SearchInput>
-        <SearchIcon>🔍</SearchIcon>
-        <Input placeholder="Type here..." />
-      </SearchInput>
+    <HeaderContainer isOpen={isOpen}>
+      <LeftSection>
+        <MenuButton onClick={() => setOpen(!isOpen)}>
+          <Menu />
+        </MenuButton>
+        <SearchInput>
+          <Search style={{ color: '#b0bec5' }} />
+          <Input placeholder="Search..." />
+        </SearchInput>
+      </LeftSection>
+
       <UserSection>
-        <IconButton>⚙️</IconButton>
-        <IconButton>🔔</IconButton>
-        <UserInfo>
-          <UserName>Mark Johnson</UserName>
-          <UserRole>Admin</UserRole>
-        </UserInfo>
+        <IconButton>
+          <Settings />
+        </IconButton>
+        <IconButton>
+          <Notifications />
+        </IconButton>
         <UserAvatar>MJ</UserAvatar>
       </UserSection>
     </HeaderContainer>

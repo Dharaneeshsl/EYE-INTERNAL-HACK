@@ -346,7 +346,7 @@ export class CertificateController {
    * POST /api/certificates/:id/auto-send
    * @access Private (Admin)
    */
-  static autoSendCertificates = async (req, res, next) => {
+  static processAutoSend = async (req, res, next) => {
     try {
       const { id } = req.params;
 
