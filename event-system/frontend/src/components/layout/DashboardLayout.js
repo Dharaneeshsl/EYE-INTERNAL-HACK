@@ -3,26 +3,39 @@ import styled from 'styled-components';
 import Sidebar from './Sidebar';
 import Header from './Header';
 
+const Layout = styled.div`
+  min-height: 100vh;
+  background-color: ${({ theme }) => theme.colors.background};
+`;
+
+const ContentWrapper = styled.div`
+  display: block;
+`;
+
+const SidebarWrapper = styled.div`
+  width: 240px;
+  flex-shrink: 0;
+`;
+
+const MainContent = styled.main`
+  flex: 1;
+  padding: 32px 24px 24px 24px;
+  margin-left: 0;
+  margin-top: 30px;
+`;
+
 const DashboardLayout = ({ children }) => {
-  const Layout = styled.div`
-    display: flex;
-    min-height: 100vh;
-    background-color: ${({ theme }) => theme.colors.background};
-  `;
-
-  const MainContent = styled.main`
-    flex: 1;
-    margin-left: 240px;
-    padding-top: 70px;
-  `;
-
   return (
     <Layout>
-      <Sidebar />
       <Header />
-      <MainContent>
-        {children}
-      </MainContent>
+      <ContentWrapper>
+        
+          <Sidebar />
+  
+        <MainContent>
+          {children}
+        </MainContent>
+      </ContentWrapper>
     </Layout>
   );
 };

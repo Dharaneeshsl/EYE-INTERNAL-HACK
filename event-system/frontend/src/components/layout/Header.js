@@ -4,12 +4,16 @@ import styled from 'styled-components';
 const HeaderContainer = styled.div`
   height: 70px;
   background-color: ${({ theme }) => theme.colors.cardBg};
-  margin-left: 240px;
+  width: 100%;
   padding: ${({ theme }) => theme.spacing.md} ${({ theme }) => theme.spacing.lg};
   display: flex;
   align-items: center;
   justify-content: space-between;
   box-shadow: ${({ theme }) => theme.shadows.card};
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 100;
 `;
 
 const SearchInput = styled.div`
@@ -108,7 +112,7 @@ const Header = () => {
         <IconButton>⚙️</IconButton>
         <IconButton>🔔</IconButton>
         <UserInfo>
-          <UserName>Mark Johnson</UserName>
+          <UserName>ABOO DHARANEESH</UserName>
           <UserRole>Admin</UserRole>
         </UserInfo>
         <UserAvatar>MJ</UserAvatar>

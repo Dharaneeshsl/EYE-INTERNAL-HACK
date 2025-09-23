@@ -30,12 +30,12 @@ const MenuItem = styled.div`
   display: flex;
   align-items: center;
   padding: ${({ theme }) => theme.spacing.md};
-  color: ${({ isActive, theme }) => 
-    isActive ? theme.colors.text.primary : theme.colors.text.secondary};
+  color: ${({ $isActive, theme }) => 
+    $isActive ? theme.colors.text.primary : theme.colors.text.secondary};
   cursor: pointer;
   transition: all 0.3s ease;
-  background-color: ${({ isActive }) => 
-    isActive ? 'rgba(255, 255, 255, 0.1)' : 'transparent'};
+  background-color: ${({ $isActive }) => 
+    $isActive ? 'rgba(255, 255, 255, 0.1)' : 'transparent'};
 
   &:hover {
     background-color: rgba(255, 255, 255, 0.1);
@@ -65,7 +65,7 @@ const Sidebar = () => {
       {menuItems.map((item) => (
         <MenuItem
           key={item.path}
-          isActive={location.pathname === item.path}
+          $isActive={location.pathname === item.path}
           onClick={() => navigate(item.path)}
         >
           {item.icon} {item.label}
