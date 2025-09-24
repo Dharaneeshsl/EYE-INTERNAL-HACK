@@ -11,15 +11,17 @@ const fadeIn = keyframes`
 
 const Container = styled.div`
   padding: ${({ theme }) => theme.spacing.lg};
-  animation: ${fadeIn} 0.5s ease-in-out;
+  margin-left: 240px;
+  @media (max-width: 900px) {
+    margin-left: 0;
+  }
 `;
 
 const CertificateCard = styled.div`
   background-color: ${({ theme }) => theme.colors.cardBg};
   border-radius: ${({ theme }) => theme.borderRadius.lg};
-  padding: ${({ theme }) => theme.spacing.lg};
-  margin-bottom: ${({ theme }) => theme.spacing.lg};
-  box-shadow: ${({ theme }) => theme.shadows.card};
+  padding: ${({ theme }) => theme.spacing.xl};
+  margin-bottom: ${({ theme }) => theme.spacing.xl};
 `;
 
 const Title = styled.h2`

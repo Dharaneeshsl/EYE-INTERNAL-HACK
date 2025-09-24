@@ -1,25 +1,21 @@
 import React from 'react';
 import styled from 'styled-components';
-import { Menu, Search, Settings, Notifications } from '@mui/icons-material';
+import { Menu, Search } from '@mui/icons-material';
 
 const HeaderContainer = styled.header`
   position: fixed;
   top: 0;
   right: 0;
-  left: ${({ isOpen }) => (isOpen ? '240px' : '0')};
+  left: 0;
   height: 70px;
-  background-color: ${({ theme }) => theme.colors.background};
+  background-color: ${({ theme }) => theme.colors.cardBg};
+  width: 100%;
+  padding: ${({ theme }) => theme.spacing.md} ${({ theme }) => theme.spacing.lg};
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 ${({ theme }) => theme.spacing.lg};
+  box-shadow: ${({ theme }) => theme.shadows.card};
   z-index: 100;
-  transition: left 0.3s ease-in-out;
-
-  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
-    left: 0;
-    padding: 0 ${({ theme }) => theme.spacing.md};
-  }
 `;
 
 const LeftSection = styled.div`
@@ -99,6 +95,22 @@ const UserAvatar = styled.div`
   cursor: pointer;
 `;
 
+const UserInfo = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+`;
+
+const UserName = styled.span`
+  font-weight: bold;
+  color: ${({ theme }) => theme.colors.text.primary};
+`;
+
+const UserRole = styled.span`
+  font-size: 12px;
+  color: ${({ theme }) => theme.colors.text.secondary};
+`;
+
 const Header = ({ isOpen, setOpen }) => {
   return (
     <HeaderContainer isOpen={isOpen}>
@@ -113,12 +125,12 @@ const Header = ({ isOpen, setOpen }) => {
       </LeftSection>
 
       <UserSection>
-        <IconButton>
-          <Settings />
-        </IconButton>
-        <IconButton>
-          <Notifications />
-        </IconButton>
+        <IconButton>⚙️</IconButton>
+        <IconButton>🔔</IconButton>
+        <UserInfo>
+          <UserName>ABOO DHARANEESH</UserName>
+          <UserRole>Admin</UserRole>
+        </UserInfo>
         <UserAvatar>MJ</UserAvatar>
       </UserSection>
     </HeaderContainer>

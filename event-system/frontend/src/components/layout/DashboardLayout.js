@@ -1,49 +1,39 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import styled from 'styled-components';
 import Sidebar from './Sidebar';
 import Header from './Header';
 
 const Layout = styled.div`
-  display: flex;
   min-height: 100vh;
   background-color: ${({ theme }) => theme.colors.background};
 `;
 
+const ContentWrapper = styled.div`
+  display: block;
+`;
+
+const SidebarWrapper = styled.div`
+  width: 240px;
+  flex-shrink: 0;
+`;
+
 const MainContent = styled.main`
   flex: 1;
-  margin-left: ${({ isOpen }) => (isOpen ? '240px' : '0')};
-  padding-top: 70px;
-  transition: margin-left 0.3s ease-in-out;
-
-  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
-    margin-left: 0;
-  }
+  padding: 32px 24px 24px 24px;
+  margin-left: 0;
+  margin-top: 30px;
 `;
 
 const DashboardLayout = ({ children }) => {
-  const [isOpen, setOpen] = useState(true);
-
-  const handleResize = () => {
-    if (window.innerWidth <= 768) {
-      setOpen(false);
-    } else {
-      setOpen(true);
-    }
-  };
-
-  useEffect(() => {
-    window.addEventListener('resize', handleResize);
-    handleResize();
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
   return (
     <Layout>
-      <Sidebar isOpen={isOpen} setOpen={setOpen} />
-      <Header isOpen={isOpen} setOpen={setOpen} />
-      <MainContent isOpen={isOpen}>
-        {children}
-      </MainContent>
+      <Header />
+      <ContentWrapper>
+        <Sidebar />
+        <MainContent>
+          {children}
+        </MainContent>
+      </ContentWrapper>
     </Layout>
   );
 };

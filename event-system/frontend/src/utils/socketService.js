@@ -1,6 +1,6 @@
 import io from 'socket.io-client';
 
-const SOCKET_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+const SOCKET_URL = (process.env.REACT_APP_API_URL || 'http://localhost:5000').replace(/\/?api$/, '');
 let socket;
 
 export const initSocket = () => {
@@ -8,7 +8,7 @@ export const initSocket = () => {
     socket = io(SOCKET_URL, {
       withCredentials: true,
       autoConnect: false,
-      path: '/socket.io',
+      path: process.env.REACT_APP_WS_PATH || '/socket.io',
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
       timeout: 10000,

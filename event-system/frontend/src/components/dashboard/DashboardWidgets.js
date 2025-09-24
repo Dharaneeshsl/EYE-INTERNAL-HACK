@@ -7,9 +7,10 @@ import ReferralWidget from './ReferralWidget';
 const StatCard = styled.div`
   background-color: ${({ theme }) => theme.colors.cardBg};
   border-radius: ${({ theme }) => theme.borderRadius.lg};
-  padding: ${({ theme }) => theme.spacing.lg};
+  padding: ${({ theme }) => theme.spacing.xl};
   box-shadow: ${({ theme }) => theme.shadows.card};
   transition: transform 0.2s ease-in-out;
+  margin-bottom: ${({ theme }) => theme.spacing.lg};
 
   &:hover {
     transform: translateY(-2px);
@@ -19,29 +20,30 @@ const StatCard = styled.div`
 const StatValue = styled.div`
   font-size: 24px;
   color: ${({ theme }) => theme.colors.text.primary};
-  margin: ${({ theme }) => theme.spacing.sm} 0;
+  margin: ${({ theme }) => theme.spacing.md} 0;
 `;
 
 const StatLabel = styled.div`
   color: ${({ theme }) => theme.colors.text.secondary};
   font-size: 14px;
+  margin-bottom: ${({ theme }) => theme.spacing.sm};
 `;
 
 const StatTrend = styled.span`
-  color: ${({ isPositive }) => (isPositive ? '#00c853' : '#d50000')};
+  color: ${({ $isPositive }) => ($isPositive ? '#00c853' : '#d50000')};
   font-size: 14px;
 `;
 
 const ChartContainer = styled.div`
   height: 300px;
-  margin-top: ${({ theme }) => theme.spacing.lg};
+  margin-top: ${({ theme }) => theme.spacing.xl};
 `;
 
 const ActiveUsersGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: ${({ theme }) => theme.spacing.md};
-  margin-top: ${({ theme }) => theme.spacing.lg};
+  gap: ${({ theme }) => theme.spacing.lg};
+  margin-top: ${({ theme }) => theme.spacing.xl};
 `;
 
 const ActiveUserCard = styled.div`
@@ -70,7 +72,7 @@ export const StatsCard = ({ title, value, trend, isPositive }) => (
   <StatCard>
     <StatLabel>{title}</StatLabel>
     <StatValue>{value}</StatValue>
-    <StatTrend isPositive={isPositive}>
+    <StatTrend $isPositive={isPositive}>
       {isPositive ? '↑' : '↓'} {trend}
     </StatTrend>
   </StatCard>

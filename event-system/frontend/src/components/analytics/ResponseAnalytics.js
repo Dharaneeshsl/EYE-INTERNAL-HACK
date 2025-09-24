@@ -4,6 +4,10 @@ import { LineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, Cartesia
 
 const Container = styled.div`
   padding: ${({ theme }) => theme.spacing.lg};
+  margin-left: 240px;
+  @media (max-width: 900px) {
+    margin-left: 0;
+  }
 `;
 
 const Grid = styled.div`
