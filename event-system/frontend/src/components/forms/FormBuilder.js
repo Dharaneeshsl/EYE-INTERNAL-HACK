@@ -11,6 +11,10 @@ const FormBuilderContainer = styled.div`
   border-radius: ${({ theme }) => theme.borderRadius.lg};
   padding: ${({ theme }) => theme.spacing.lg};
   margin: ${({ theme }) => theme.spacing.lg};
+  margin-left: 240px;
+  @media (max-width: 900px) {
+    margin-left: 0;
+  }
 `;
 
 const FormBuilderHeader = styled.div`
@@ -125,9 +129,9 @@ const DeleteButton = styled.button`
 `;
 
 const ActionButton = styled.button`
-  background-color: ${props => props.variant === 'secondary' ? props.theme.colors.background : props.theme.colors.primary};
-  color: ${props => props.variant === 'secondary' ? props.theme.colors.text.primary : 'white'};
-  border: ${props => props.variant === 'secondary' ? `1px solid ${props.theme.colors.border}` : 'none'};
+  background-color: ${props => props.$variant === 'secondary' ? props.theme.colors.background : props.theme.colors.primary};
+  color: ${props => props.$variant === 'secondary' ? props.theme.colors.text.primary : 'white'};
+  border: ${props => props.$variant === 'secondary' ? `1px solid ${props.theme.colors.border}` : 'none'};
   border-radius: ${({ theme }) => theme.borderRadius.sm};
   padding: ${({ theme }) => theme.spacing.md} ${({ theme }) => theme.spacing.lg};
   cursor: pointer;
@@ -135,7 +139,7 @@ const ActionButton = styled.button`
 
   &:hover {
     opacity: 0.9;
-    border-color: ${props => props.variant === 'secondary' ? props.theme.colors.primary : 'none'};
+    border-color: ${props => props.$variant === 'secondary' ? props.theme.colors.primary : 'none'};
   }
 `;
 
@@ -252,7 +256,7 @@ const FormBuilder = () => {
       <FormBuilderContainer>
         <FormPreview form={formData} />
         <ButtonContainer>
-          <ActionButton variant="secondary" onClick={() => setIsPreviewMode(false)}>
+          <ActionButton $variant="secondary" onClick={() => setIsPreviewMode(false)}>
             Back to Editor
           </ActionButton>
         </ButtonContainer>
@@ -347,7 +351,7 @@ const FormBuilder = () => {
         {error && (
           <div style={{ color: 'red', marginRight: 'auto' }}>{error}</div>
         )}
-        <ActionButton variant="secondary" onClick={() => setIsPreviewMode(true)}>
+        <ActionButton $variant="secondary" onClick={() => setIsPreviewMode(true)}>
           Preview Form
         </ActionButton>
         <ActionButton 
