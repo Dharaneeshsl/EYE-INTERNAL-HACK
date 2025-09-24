@@ -2,12 +2,14 @@ import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import helmet from 'helmet';
+import cors from 'cors';
 import morgan from 'morgan';
 import { sessionMiddleware } from './config/session.js';
 import { initializeSocket } from './services/socketService.js';
 import { connectDB } from './config/db.js';
 import formRoutes from './routes/formRoutes.js';
 import authRoutes from './routes/authRoutes.js';
+import certificateRoutes from './routes/certificateRoutes.js';
 import config from './config/index.js';
 
 const app = express();
@@ -75,6 +77,7 @@ if (process.env.NODE_ENV === 'development') {
 // Routes
 app.use('/api/forms', formRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/certificates', certificateRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {

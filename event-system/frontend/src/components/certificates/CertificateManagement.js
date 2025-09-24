@@ -1,5 +1,13 @@
-import React, { useState } from 'react';
-import styled from 'styled-components';
+import React, { useState, useEffect } from 'react';
+import styled, { keyframes } from 'styled-components';
+import { CertificateService } from '../../services/certificateService.js';
+import { getAllForms } from '../../services/formService.js'; // Import form service
+
+// Keyframes and Styles...
+const fadeIn = keyframes`
+  from { opacity: 0; }
+  to { opacity: 1; }
+`;
 
 const Container = styled.div`
   padding: ${({ theme }) => theme.spacing.lg};
@@ -21,50 +29,40 @@ const Title = styled.h2`
   margin-bottom: ${({ theme }) => theme.spacing.lg};
 `;
 
-const FileUpload = styled.div`
-  border: 2px dashed ${({ theme }) => theme.colors.primary};
-  border-radius: ${({ theme }) => theme.borderRadius.md};
-  padding: ${({ theme }) => theme.spacing.xl};
-  text-align: center;
-  cursor: pointer;
-  margin-bottom: ${({ theme }) => theme.spacing.lg};
-  
-  &:hover {
-    border-color: ${({ theme }) => theme.colors.secondary};
-  }
-`;
-
-const FieldMappingContainer = styled.div`
-  display: grid;
-  gap: ${({ theme }) => theme.spacing.md};
-`;
-
-const FieldMapping = styled.div`
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: ${({ theme }) => theme.spacing.md};
+const LoadingContainer = styled.div`
+  display: flex;
+  justify-content: center;
   align-items: center;
+  height: 200px;
+  font-size: 1.2rem;
+  color: ${({ theme }) => theme.colors.text.secondary};
+`;
+
+const ErrorContainer = styled.div`
+  background-color: #ff4d4f;
+  color: white;
   padding: ${({ theme }) => theme.spacing.md};
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  margin-bottom: ${({ theme }) => theme.spacing.lg};
+`;
+
+const CertificateList = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: ${({ theme }) => theme.spacing.lg};
+`;
+
+const CertificateItem = styled.div`
   background-color: rgba(255, 255, 255, 0.05);
-  border-radius: ${({ theme }) => theme.borderRadius.sm};
-`;
+  padding: ${({ theme }) => theme.spacing.md};
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
 
-const Select = styled.select`
-  padding: ${({ theme }) => theme.spacing.sm};
-  background-color: ${({ theme }) => theme.colors.background};
-  color: ${({ theme }) => theme.colors.text.primary};
-  border: 1px solid ${({ theme }) => theme.colors.primary};
-  border-radius: ${({ theme }) => theme.borderRadius.sm};
-  width: 100%;
-`;
-
-const Input = styled.input`
-  padding: ${({ theme }) => theme.spacing.sm};
-  background-color: ${({ theme }) => theme.colors.background};
-  color: ${({ theme }) => theme.colors.text.primary};
-  border: 1px solid ${({ theme }) => theme.colors.primary};
-  border-radius: ${({ theme }) => theme.borderRadius.sm};
-  width: 100%;
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: ${({ theme }) => theme.shadows.elevated};
+  }
 `;
 
 const Button = styled.button`
@@ -80,74 +78,109 @@ const Button = styled.button`
   }
 `;
 
+const CreateCertificateForm = styled.div`
+  /* Styles for the creation form */
+`;
+
 const CertificateManagement = () => {
-  const [template, setTemplate] = useState(null);
-  const [fieldMappings, setFieldMappings] = useState([
-    { formField: '', certificateField: '' }
-  ]);
+  const [certificates, setCertificates] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [forms, setForms] = useState([]);
+  const [newCertificateData, setNewCertificateData] = useState({ name: '', description: '', formId: '' });
+  const [templateFile, setTemplateFile] = useState(null);
+  const [isCreating, setIsCreating] = useState(false);
+  const [createError, setCreateError] = useState(null);
 
-  const handleTemplateUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setTemplate(file);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const [certs, allForms] = await Promise.all([
+          CertificateService.getCertificates(),
+          getAllForms()
+        ]);
+        setCertificates(certs);
+        setForms(allForms);
+        setError(null);
+      } catch (err) {
+        setError('Failed to fetch data. Please try again later.');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const handleCreateCertificate = async (e) => {
+    e.preventDefault();
+    setIsCreating(true);
+    setCreateError(null);
+    try {
+      await CertificateService.createCertificate(newCertificateData, templateFile);
+      setShowCreateForm(false);
+      // Refresh certificates list
+      const fetchedCertificates = await CertificateService.getCertificates();
+      setCertificates(fetchedCertificates);
+    } catch (err) {
+      setCreateError('Failed to create certificate.');
+    } finally {
+      setIsCreating(false);
     }
-  };
-
-  const handleAddFieldMapping = () => {
-    setFieldMappings([...fieldMappings, { formField: '', certificateField: '' }]);
-  };
-
-  const handleFieldMappingChange = (index, field, value) => {
-    const newMappings = [...fieldMappings];
-    newMappings[index] = { ...newMappings[index], [field]: value };
-    setFieldMappings(newMappings);
   };
 
   return (
     <Container>
-      <CertificateCard>
-        <Title>Certificate Template</Title>
-        <FileUpload onClick={() => document.getElementById('templateUpload').click()}>
-          <input
-            type="file"
-            id="templateUpload"
-            hidden
-            accept=".pdf"
-            onChange={handleTemplateUpload}
-          />
-          <p>{template ? template.name : 'Drop your certificate template here or click to upload'}</p>
-        </FileUpload>
-      </CertificateCard>
+      <Title>Certificate Management</Title>
 
-      <CertificateCard>
-        <Title>Field Mapping</Title>
-        <FieldMappingContainer>
-          {fieldMappings.map((mapping, index) => (
-            <FieldMapping key={index}>
-              <Select
-                value={mapping.formField}
-                onChange={(e) => handleFieldMappingChange(index, 'formField', e.target.value)}
-              >
-                <option value="">Select Form Field</option>
-                <option value="name">Name</option>
-                <option value="email">Email</option>
-                <option value="course">Course</option>
-              </Select>
-              <Input
-                type="text"
-                placeholder="Certificate Field Name"
-                value={mapping.certificateField}
-                onChange={(e) => handleFieldMappingChange(index, 'certificateField', e.target.value)}
-              />
-            </FieldMapping>
+      <Button onClick={() => setShowCreateForm(!showCreateForm)}>
+        {showCreateForm ? 'Cancel' : 'Create New Certificate'}
+      </Button>
+
+      {showCreateForm && (
+        <CertificateCard>
+          <form onSubmit={handleCreateCertificate}>
+            <input 
+              type="text" 
+              placeholder="Certificate Name" 
+              onChange={e => setNewCertificateData({...newCertificateData, name: e.target.value})} 
+            />
+            <textarea 
+              placeholder="Description" 
+              onChange={e => setNewCertificateData({...newCertificateData, description: e.target.value})} 
+            />
+            <select onChange={e => setNewCertificateData({...newCertificateData, formId: e.target.value})}>
+              <option value="">Select a Form</option>
+              {forms.map(form => (
+                <option key={form._id} value={form._id}>{form.title}</option>
+              ))}
+            </select>
+            <input type="file" onChange={e => setTemplateFile(e.target.files[0])} />
+            <Button type="submit" disabled={isCreating}>
+              {isCreating ? 'Creating...' : 'Save Certificate'}
+            </Button>
+            {createError && <ErrorContainer>{createError}</ErrorContainer>}
+          </form>
+        </CertificateCard>
+      )}
+      
+      {error && <ErrorContainer>{error}</ErrorContainer>}
+
+      {loading ? (
+        <LoadingContainer>Loading certificates...</LoadingContainer>
+      ) : (
+        <CertificateList>
+          {certificates.map((cert) => (
+            <CertificateItem key={cert._id}>
+              <h3>{cert.name}</h3>
+              <p>Form: {cert.formId.title}</p>
+            </CertificateItem>
           ))}
-        </FieldMappingContainer>
-        <Button onClick={handleAddFieldMapping} style={{ marginTop: '1rem' }}>
-          Add Field Mapping
-        </Button>
-      </CertificateCard>
-
-      <Button>Save Certificate Configuration</Button>
+        </CertificateList>
+      )}
     </Container>
   );
 };

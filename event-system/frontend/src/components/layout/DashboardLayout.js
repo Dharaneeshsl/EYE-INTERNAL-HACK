@@ -29,9 +29,7 @@ const DashboardLayout = ({ children }) => {
     <Layout>
       <Header />
       <ContentWrapper>
-        
-          <Sidebar />
-  
+        <Sidebar />
         <MainContent>
           {children}
         </MainContent>
