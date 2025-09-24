@@ -26,7 +26,7 @@ export class CertificateService {
       }
 
       const response = await Response.findById(responseId)
-        .populate('submittedBy', 'name email');
+        .populate('user', 'name email');
 
       if (!response) {
         throw new ApiError('Response not found', 404);
@@ -112,7 +112,7 @@ export class CertificateService {
       const responses = await Response.find({
         formId: certificate.formId,
         createdAt: { $lte: new Date(Date.now() - delay * 60 * 1000) }
-      }).populate('submittedBy', 'name email');
+      }).populate('user', 'name email');
 
       let sent = 0;
       let errors = 0;
@@ -131,7 +131,7 @@ export class CertificateService {
           const emailResult = await this.sendCertificate({
             certificateId,
             responseId: response._id,
-            recipientEmail: response.submittedBy.email,
+            recipientEmail: response.user?.email,
             pdfBuffer,
           });
 
@@ -188,10 +188,10 @@ export class CertificateService {
     if (data && data[formField]) {
       return data[formField];
     }
-    if (response.submittedBy) {
+    if (response.user) {
       switch (formField) {
-        case 'name': return response.submittedBy.name;
-        case 'email': return response.submittedBy.email;
+        case 'name': return response.user.name;
+        case 'email': return response.user.email;
         default: return '';
       }
     }

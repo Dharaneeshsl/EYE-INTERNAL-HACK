@@ -137,6 +137,17 @@ Thumbs.db
 /public/uploads/*
 !/public/uploads/.gitkeep
 
+# Backend runtime directories
+event-system/backend/uploads/*
+!event-system/backend/uploads/.gitkeep
+event-system/backend/certificates/*
+!event-system/backend/certificates/.gitkeep
+event-system/backend/logs/*
+!event-system/backend/logs/.gitkeep
+
+# Frontend build output
+event-system/frontend/build/
+
 # Logs directory
 /logs/*
 !/logs/.gitkeep

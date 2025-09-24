@@ -101,13 +101,14 @@ router.post('/:id/submit', async (req, res, next) => {
     // Create response
     const response = await Response.create({
       formId: form._id,
-      submittedBy: req.user?._id,
+      userId: req.user?._id,
       answers: req.body.answers,
-      metadata: {
-        userAgent: req.headers['user-agent'],
-        ipAddress: req.ip,
-        language: req.headers['accept-language'],
-        referrer: req.headers.referer
+      complete: true,
+      time: req.body.time,
+      meta: {
+        ua: req.headers['user-agent'],
+        ip: req.ip,
+        ref: req.headers.referer
       }
     });
 

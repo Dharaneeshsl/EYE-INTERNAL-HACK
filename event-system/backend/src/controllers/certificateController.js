@@ -207,7 +207,7 @@ export class CertificateController {
       const pdfBuffer = await certificateService.generateCertificate({
         certificateId: id,
         responseId,
-        data: response.data
+        data: response.answers
       });
 
       res.setHeader('Content-Type', 'application/pdf');
@@ -243,7 +243,7 @@ export class CertificateController {
       const pdfBuffer = await certificateService.generateCertificate({
         certificateId: id,
         responseId,
-        data: response.data
+        data: response.answers
       });
 
       // Send email
@@ -302,7 +302,7 @@ export class CertificateController {
         throw new ApiError('Certificate not found', 404);
       }
 
-      const results = await certificateService.batchGenerateCertificates({
+      const results = await certificateService.generateBatchCertificates({
         certificateId,
         responseIds
       });
@@ -359,7 +359,7 @@ export class CertificateController {
         throw new ApiError('Auto-send is not enabled for this certificate', 400);
       }
 
-      const results = await certificateService.autoSendCertificates(id);
+      const results = await certificateService.processAutoSend(id);
 
       res.json({
         success: true,

@@ -14,7 +14,7 @@ root.render(
   <React.StrictMode>
     <MuiThemeProvider theme={muiTheme}>
       <CssBaseline />
-      <StyledThemeProvider theme={theme}>
+      <StyledThemeProvider theme={customTheme}>
         <App />
       </StyledThemeProvider>
     </MuiThemeProvider>

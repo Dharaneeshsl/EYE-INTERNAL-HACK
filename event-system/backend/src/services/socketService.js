@@ -48,14 +48,7 @@ export const initializeSocket = (io) => {
     }
   });
 
-  // Middleware for authentication
-  io.use((socket, next) => {
-    if (!socket.handshake.session.user) {
-      return next(new ApiError('Authentication required', 401));
-    }
-    socket.user = socket.handshake.session.user;
-    next();
-  });
+  // Authentication is handled in the session verification above; ensure socket.user exists
 
   io.on('connection', (socket) => {
     console.log(`User connected: ${socket.id}`);

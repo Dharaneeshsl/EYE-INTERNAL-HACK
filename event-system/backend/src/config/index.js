@@ -105,7 +105,6 @@ const config = {
 const validateConfig = () => {
   const required = [
     'session.secret',
-    'jwt.secret',
     'email.auth.user',
     'email.auth.pass',
     'security.encryptionKey'

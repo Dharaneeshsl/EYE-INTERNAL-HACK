@@ -2,6 +2,8 @@ import express from 'express';
 import { isAuthenticated, isAdmin } from '../middleware/auth.js';
 import { uploadCertificateTemplate, handleUploadError } from '../middleware/upload.js';
 import { CertificateController } from '../controllers/certificateController.js';
+import { ApiError } from '../utils/errors.js';
+import Certificate from '../models/Certificate.js';
 
 const router = express.Router();
 
