@@ -1,29 +1,11 @@
-// SurveyBuilder.jsx
-import { SurveyCreator, SurveyCreatorComponent } from 'survey-creator-react';
-import 'survey-core/defaultV2.min.css';
-import 'survey-creator-core/survey-creator-core.min.css';
+import React from "react";
+import { Survey } from "survey-react-ui";
 
-export default function SurveyBuilder({ onSave, json }) {
-  const creatorOptions = {
-    showLogicTab: true,
-    isAutoSave: false,
-    showTranslationTab: false,
-    showThemeTab: false,
-    showTestSurveyTab: true,
-    showJSONEditorTab: true,
-    showEmbededSurveyTab: false,
-    showPropertyGrid: true,
-    showOptions: true,
-    readOnly: false
-  };
-
+export default function SurveyBuilder({ json, onComplete }) {
   return (
-    <div className="w-full">
-      <SurveyCreatorComponent
-        creator={new SurveyCreator(creatorOptions)}
-        json={json}
-        onSaveSurvey={onSave}
-      />
+    <div style={{ padding: "20px" }}>
+      {/* Survey Form */}
+      <Survey json={json} onComplete={onComplete} />
     </div>
   );
 }

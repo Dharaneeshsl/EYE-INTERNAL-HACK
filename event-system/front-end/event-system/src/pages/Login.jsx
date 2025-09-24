@@ -30,15 +30,16 @@ export default function Login() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-white">
-      <form onSubmit={handleSubmit} className="bg-white border border-black rounded-2xl shadow-lg p-10 w-full max-w-md flex flex-col gap-6">
-        <h2 className="text-2xl font-bold mb-2 text-center">Admin Login</h2>
-        <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Email" className="border border-black rounded px-4 py-2 focus:outline-none" required />
-        <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Password" className="border border-black rounded px-4 py-2 focus:outline-none" required />
-        <button type="submit" disabled={loading} className="bg-black text-white rounded-2xl px-4 py-2 font-semibold hover:bg-white hover:text-black border border-black transition-all">{loading ? 'Logging in...' : 'Login'}</button>
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 relative">
+      <div className="absolute inset-0 bg-black opacity-60 z-0"></div>
+      <form onSubmit={handleSubmit} className="relative z-10 bg-white/90 border border-gray-200 rounded-3xl shadow-2xl p-12 w-full max-w-md flex flex-col gap-7 backdrop-blur-md">
+        <h2 className="text-3xl font-extrabold mb-4 text-center text-gray-900 drop-shadow">Admin Login</h2>
+        <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Email" className="border border-gray-300 rounded-lg px-5 py-3 focus:outline-none focus:ring-2 focus:ring-blue-400 text-lg" required />
+        <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Password" className="border border-gray-300 rounded-lg px-5 py-3 focus:outline-none focus:ring-2 focus:ring-blue-400 text-lg" required />
+        <button type="submit" disabled={loading} className="bg-black text-white rounded-xl px-5 py-3 font-bold hover:bg-white hover:text-black border border-black transition-all text-lg shadow-md disabled:opacity-60 disabled:cursor-not-allowed">{loading ? 'Logging in...' : 'Login'}</button>
         <div className="flex justify-between text-sm mt-2">
-          <Link to="/register" className="underline">Register</Link>
-          <a href="#" className="underline">Forgot password?</a>
+          <Link to="/register" className="underline text-blue-600 hover:text-blue-800">Register</Link>
+          <a href="#" className="underline text-blue-600 hover:text-blue-800">Forgot password?</a>
         </div>
       </form>
       {error && <Toast message={error} onClose={() => setError('')} />}
