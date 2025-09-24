@@ -27,8 +27,8 @@ export class AnalyticsService {
             totalResponses: { $sum: 1 },
             averageTimeSpent: { $avg: '$time' },
             sentiments: { $push: '$sentiment' },
-            isCompleteCount: { $sum: { $cond: ['$isComplete', 1, 0] } },
-            certificatesSentCount: { $sum: { $cond: ['$certificateSent', 1, 0] } }
+            isCompleteCount: { $sum: { $cond: ['$complete', 1, 0] } },
+            certificatesSentCount: { $sum: { $cond: ['$cert.sent', 1, 0] } }
           }
         }
       ]);
@@ -81,7 +81,7 @@ export class AnalyticsService {
   static async getAggregatedStatistics() {
     try {
       const [responses, forms] = await Promise.all([
-        Response.find({ isComplete: true }),
+        Response.find({ complete: true }),
         Form.find({ isPublished: true })
       ]);
 
@@ -111,7 +111,7 @@ export class AnalyticsService {
         .slice(0, 5);
 
       // Calculate overall sentiment distribution
-      const allResponses = await Response.find({ isComplete: true });
+      const allResponses = await Response.find({ complete: true });
       const sentimentStats = allResponses.reduce((acc, response) => {
         const label = response.sentiment?.label || 'unknown';
         acc[label] = (acc[label] || 0) + 1;
@@ -123,7 +123,7 @@ export class AnalyticsService {
           totalForms,
           totalResponses,
           averageResponsesPerForm: Math.round(averageResponsesPerForm * 100) / 100, // Round to 2 decimal places
-          certificatesSent: allResponses.filter(r => r.certificateSent).length
+          certificatesSent: allResponses.filter(r => r.cert?.sent).length
         },
         responsesByDay,
         topForms,

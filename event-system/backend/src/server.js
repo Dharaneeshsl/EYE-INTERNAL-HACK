@@ -10,6 +10,7 @@ import { connectDB } from './config/db.js';
 import formRoutes from './routes/formRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import certificateRoutes from './routes/certificateRoutes.js';
+import analyticsRoutes from './routes/analyticsRoutes.js';
 import config from './config/index.js';
 
 const app = express();
@@ -69,6 +70,9 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Sessions (required for auth middleware to work on HTTP routes)
+app.use(sessionMiddleware);
+
 // Logging
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
@@ -78,6 +82,7 @@ if (process.env.NODE_ENV === 'development') {
 app.use('/api/forms', formRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/certificates', certificateRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {

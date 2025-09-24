@@ -37,18 +37,16 @@ const responseSchema = new mongoose.Schema({
 
 // Calculate time spent before saving
 responseSchema.pre('save', function (next) {
-  if (this.answers && this.answers.length > 0) {
-    // Calculate total time spent if not already set
-    if (!this.timeSpent || this.timeSpent === 0) {
-      this.timeSpent = this.answers.reduce((total, answer) => {
-        if (answer.startTime && answer.endTime) {
-          const start = new Date(answer.startTime).getTime();
-          const end = new Date(answer.endTime).getTime();
-          return total + Math.floor((end - start) / 1000); // Convert to seconds
-        }
-        return total;
-      }, 0);
-    }
+  if (typeof this.time !== 'number' && this.answers && this.answers.length > 0) {
+    const seconds = this.answers.reduce((total, answer) => {
+      if (answer.time?.start && answer.time?.end) {
+        const start = new Date(answer.time.start).getTime();
+        const end = new Date(answer.time.end).getTime();
+        return total + Math.max(0, Math.floor((end - start) / 1000));
+      }
+      return total;
+    }, 0);
+    this.time = seconds;
   }
   next();
 });
@@ -77,17 +75,17 @@ responseSchema.virtual('form', {
 // Virtual for user
 responseSchema.virtual('user', {
   ref: 'User',
-  localField: 'submittedBy',
+  localField: 'userId',
   foreignField: '_id',
   justOne: true,
 });
 
 // Indexes for common queries
-responseSchema.index({ formId: 1, submittedAt: -1 });
+responseSchema.index({ formId: 1, createdAt: -1 });
 responseSchema.index({ 'sentiment.label': 1, formId: 1 });
-responseSchema.index({ 'metadata.ipAddress': 1, formId: 1 });
-responseSchema.index({ 'metadata.userAgent': 1 });
-responseSchema.index({ certificateSent: 1, formId: 1 });
+responseSchema.index({ 'meta.ip': 1, formId: 1 });
+responseSchema.index({ 'meta.ua': 1 });
+responseSchema.index({ 'cert.sent': 1, formId: 1 });
 
 const Response = mongoose.model('Response', responseSchema);
 
