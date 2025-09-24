@@ -30,18 +30,48 @@ export default function Login() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 relative">
-      <div className="absolute inset-0 bg-black opacity-60 z-0"></div>
-      <form onSubmit={handleSubmit} className="relative z-10 bg-white/90 border border-gray-200 rounded-3xl shadow-2xl p-12 w-full max-w-md flex flex-col gap-7 backdrop-blur-md">
-        <h2 className="text-3xl font-extrabold mb-4 text-center text-gray-900 drop-shadow">Admin Login</h2>
-        <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Email" className="border border-gray-300 rounded-lg px-5 py-3 focus:outline-none focus:ring-2 focus:ring-blue-400 text-lg" required />
-        <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Password" className="border border-gray-300 rounded-lg px-5 py-3 focus:outline-none focus:ring-2 focus:ring-blue-400 text-lg" required />
-        <button type="submit" disabled={loading} className="bg-black text-white rounded-xl px-5 py-3 font-bold hover:bg-white hover:text-black border border-black transition-all text-lg shadow-md disabled:opacity-60 disabled:cursor-not-allowed">{loading ? 'Logging in...' : 'Login'}</button>
-        <div className="flex justify-between text-sm mt-2">
-          <Link to="/register" className="underline text-blue-600 hover:text-blue-800">Register</Link>
-          <a href="#" className="underline text-blue-600 hover:text-blue-800">Forgot password?</a>
+    <div 
+      className="fixed inset-0 flex items-center justify-center bg-gray-100 z-50 overflow-hidden"
+      style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh' }}
+    >
+      <form 
+        onSubmit={handleSubmit} 
+        className="bg-white border border-gray-300 rounded-3xl p-8 w-full max-w-md flex flex-col gap-6 shadow-xl"
+      >
+        <h2 className="text-2xl font-bold text-center text-gray-900">Admin Login</h2>
+        
+        <input 
+          type="email" 
+          value={email} 
+          onChange={e => setEmail(e.target.value)} 
+          placeholder="Email" 
+          className="border border-gray-400 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-700 w-full bg-gray-50 text-gray-900" 
+          required 
+        />
+
+        <input 
+          type="password" 
+          value={password} 
+          onChange={e => setPassword(e.target.value)} 
+          placeholder="Password" 
+          className="border border-gray-400 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-700 w-full bg-gray-50 text-gray-900" 
+          required 
+        />
+
+        <button 
+          type="submit" 
+          disabled={loading} 
+          className="bg-gray-900 text-white rounded-lg px-4 py-3 font-semibold hover:bg-black transition-colors disabled:opacity-60 disabled:cursor-not-allowed w-full"
+        >
+          {loading ? 'Logging in...' : 'Login'}
+        </button>
+
+        <div className="flex justify-between text-sm mt-2 text-gray-700">
+          <Link to="/register" className="hover:underline">Register</Link>
+          <a href="#" className="hover:underline">Forgot password?</a>
         </div>
       </form>
+
       {error && <Toast message={error} onClose={() => setError('')} />}
     </div>
   );
