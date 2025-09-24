@@ -5,7 +5,7 @@ import App from './App';
 import { ThemeProvider as StyledThemeProvider } from 'styled-components';
 import { ThemeProvider as MuiThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import { theme as customTheme } from './theme/theme';
+import customTheme from './theme/theme';
 
 const muiTheme = createTheme();
 
