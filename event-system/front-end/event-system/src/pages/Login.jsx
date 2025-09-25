@@ -31,21 +31,21 @@ export default function Login() {
 
   return (
     <div 
-      className="fixed inset-0 flex items-center justify-center bg-gray-100 z-50 overflow-hidden"
+      className="fixed inset-0 flex items-center justify-center bg-black z-50 overflow-hidden"
       style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh' }}
     >
       <form 
         onSubmit={handleSubmit} 
-        className="bg-white border border-gray-300 rounded-3xl p-8 w-full max-w-md flex flex-col gap-6 shadow-xl"
+        className="bg-black border border-gray-700 rounded-3xl p-8 w-full max-w-md flex flex-col gap-6 shadow-xl text-white"
       >
-        <h2 className="text-2xl font-bold text-center text-gray-900">Admin Login</h2>
+        <h2 className="text-2xl font-bold text-center text-white">Admin Login</h2>
         
         <input 
           type="email" 
           value={email} 
           onChange={e => setEmail(e.target.value)} 
           placeholder="Email" 
-          className="border border-gray-400 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-700 w-full bg-gray-50 text-gray-900" 
+          className="border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-500 w-full bg-black text-white" 
           required 
         />
 
@@ -54,19 +54,19 @@ export default function Login() {
           value={password} 
           onChange={e => setPassword(e.target.value)} 
           placeholder="Password" 
-          className="border border-gray-400 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-700 w-full bg-gray-50 text-gray-900" 
+          className="border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-500 w-full bg-black text-white" 
           required 
         />
 
         <button 
           type="submit" 
           disabled={loading} 
-          className="bg-gray-900 text-white rounded-lg px-4 py-3 font-semibold hover:bg-black transition-colors disabled:opacity-60 disabled:cursor-not-allowed w-full"
+          className="bg-white text-black rounded-lg px-4 py-3 font-semibold hover:bg-gray-200 transition-colors disabled:opacity-60 disabled:cursor-not-allowed w-full"
         >
           {loading ? 'Logging in...' : 'Login'}
         </button>
 
-        <div className="flex justify-between text-sm mt-2 text-gray-700">
+        <div className="flex justify-between text-sm mt-2 text-gray-300">
           <Link to="/register" className="hover:underline">Register</Link>
           <a href="#" className="hover:underline">Forgot password?</a>
         </div>

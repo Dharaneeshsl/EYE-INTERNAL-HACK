@@ -1,8 +1,11 @@
 import express from 'express';
 import QRCode from 'qrcode';
+import { Parser } from 'json2csv';
 import { isAuthenticated, isAdmin } from '../middleware/auth.js';
 import Form from '../models/Form.js';
 import Response from '../models/Response.js';
+import Certificate from '../models/Certificate.js';
+import certificateService from '../services/certificateService.js';
 import { ApiError } from '../utils/errors.js';
 
 const router = express.Router();
@@ -120,6 +123,43 @@ router.post('/:id/submit', async (req, res, next) => {
       });
     }
 
+    // Auto-generate and send certificate if enabled for this form
+    try {
+      const certificate = await Certificate.findOne({ formId: form._id, isActive: true });
+      if (certificate?.autoSend) {
+        const pdfBuffer = await certificateService.generateCertificate({
+          certificateId: certificate._id,
+          responseId: response._id,
+          data: response.answers
+        });
+
+        // Determine recipient email: prefer populated user email, else look for email answer
+        let recipientEmail = req.user?.email;
+        if (!recipientEmail && Array.isArray(response.answers)) {
+          const emailAns = response.answers.find(a => a.type === 'email' || a.qId?.toLowerCase().includes('email'));
+          if (emailAns?.text) recipientEmail = emailAns.text;
+          if (emailAns?.val && typeof emailAns.val === 'string') recipientEmail = emailAns.val;
+        }
+
+        if (recipientEmail) {
+          const sendResult = await certificateService.sendCertificate({
+            certificateId: certificate._id,
+            responseId: response._id,
+            recipientEmail,
+            pdfBuffer
+          });
+
+          if (sendResult.sent) {
+            response.cert = { sent: true, at: new Date() };
+            await response.save();
+          }
+        }
+      }
+    } catch (autoErr) {
+      // Log but do not fail submission
+      console.error('Auto-send certificate error:', autoErr);
+    }
+
     res.status(201).json({
       success: true,
       data: response
@@ -172,6 +212,52 @@ router.get('/:id/responses', isAuthenticated, isAdmin, async (req, res, next) =>
       success: true,
       data: responses
     });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * Export responses as CSV
+ * GET /api/forms/:id/export
+ * @access Private (Admin)
+ */
+router.get('/:id/export', isAuthenticated, isAdmin, async (req, res, next) => {
+  try {
+    const form = await Form.findById(req.params.id);
+    if (!form) throw new ApiError('Form not found', 404);
+
+    const responses = await Response.find({ formId: req.params.id }).sort('createdAt');
+
+    // Flatten answers into key-value pairs per response
+    const rows = responses.map(r => {
+      const base = {
+        responseId: r._id.toString(),
+        formId: r.formId.toString(),
+        userId: r.userId?.toString() || '',
+        createdAt: r.createdAt?.toISOString() || '',
+        time: r.time || 0,
+        certSent: r.cert?.sent || false,
+        certAt: r.cert?.at ? r.cert.at.toISOString() : ''
+      };
+
+      if (Array.isArray(r.answers)) {
+        r.answers.forEach(ans => {
+          const key = ans.qId || ans.text || `q_${Math.random().toString(36).slice(2, 8)}`;
+          const val = ans.val ?? ans.text ?? '';
+          base[key] = typeof val === 'object' ? JSON.stringify(val) : val;
+        });
+      }
+
+      return base;
+    });
+
+    const parser = new Parser({ withBOM: true });
+    const csv = parser.parse(rows);
+
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="form-${form._id}-responses.csv"`);
+    res.status(200).send(csv);
   } catch (error) {
     next(error);
   }

@@ -1,9 +1,37 @@
 import express from 'express';
 import bcrypt from 'bcrypt';
 import User from '../models/User.js';
-import { UnauthenticatedError } from '../utils/errors.js';
+import { UnauthenticatedError, ApiError } from '../utils/errors.js';
 
 const router = express.Router();
+
+// Register route
+router.post('/register', async (req, res, next) => {
+  try {
+    const { name, email, password } = req.body;
+    if (!name || !email || !password) {
+      throw new ApiError('Name, email and password are required', 400);
+    }
+    const exists = await User.findOne({ email });
+    if (exists) {
+      throw new ApiError('Email already in use', 400);
+    }
+    const user = await User.create({ name, email, password });
+
+    // Set session
+    req.session.user = { id: user._id, email: user.email, role: user.role };
+
+    res.status(201).json({
+      user: {
+        id: user._id,
+        email: user.email,
+        role: user.role
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+});
 
 // Login route
 router.post('/login', async (req, res, next) => {

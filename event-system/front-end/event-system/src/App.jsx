@@ -17,17 +17,15 @@ import './App.css';
 
 
 function AppShell() {
-	const [darkMode, setDarkMode] = useState(false);
-	const toggleDarkMode = () => setDarkMode((d) => !d);
-	const { user, logout } = useAuth();
+    const { user, logout } = useAuth();
 
-	return (
-		<div className={darkMode ? 'dark bg-black text-white min-h-screen' : 'bg-white text-black min-h-screen'}>
+    return (
+        <div className={'bg-black text-white min-h-screen'}>
 			<Router>
 				<div className="flex min-h-screen">
-					{user && <Sidebar darkMode={darkMode} />}
+                    {user && <Sidebar darkMode={true} />}
 					<div className="flex-1 flex flex-col">
-						{user && <Header darkMode={darkMode} toggleDarkMode={toggleDarkMode} user={user} logout={logout} />}
+                        {user && <Header darkMode={true} toggleDarkMode={() => {}} user={user} logout={logout} />}
 						<main className="flex-1 p-6">
 							<Routes>
 								<Route path="/login" element={!user ? <Login /> : <Navigate to="/dashboard" />} />
