@@ -1,25 +1,21 @@
 // api.js
 // Centralized API service for backend communication
-const API_BASE = 'http://localhost:5000/api'; // Adjust as needed
-
+const API_BASE = 'http://localhost:5001/api'; // Adjust as needed
 
 export async function login(email, password) {
   const res = await fetch(`${API_BASE}/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
     body: JSON.stringify({ email, password })
   });
   if (!res.ok) throw new Error('Login failed');
   return res.json();
 }
 
-
 export async function register(name, email, password) {
   const res = await fetch(`${API_BASE}/auth/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
     body: JSON.stringify({ name, email, password })
   });
   if (!res.ok) throw new Error('Registration failed');
