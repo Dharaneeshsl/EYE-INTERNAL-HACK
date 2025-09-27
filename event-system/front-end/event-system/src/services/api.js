@@ -6,6 +6,7 @@ export async function login(email, password) {
   const res = await fetch(`${API_BASE}/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
     body: JSON.stringify({ email, password })
   });
   if (!res.ok) throw new Error('Login failed');
@@ -16,6 +17,7 @@ export async function register(name, email, password) {
   const res = await fetch(`${API_BASE}/auth/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
     body: JSON.stringify({ name, email, password })
   });
   if (!res.ok) throw new Error('Registration failed');

@@ -4,6 +4,15 @@ import User from '../models/User.js';
 import { UnauthenticatedError, ApiError } from '../utils/errors.js';
 
 const router = express.Router();
+// Profile route
+router.get('/profile', (req, res, next) => {
+  if (!req.session.user) {
+    return res.status(401).json({ success: false, message: 'Not authenticated' });
+  }
+  res.json({
+    user: req.session.user
+  });
+});
 
 // Register route
 router.post('/register', async (req, res, next) => {
