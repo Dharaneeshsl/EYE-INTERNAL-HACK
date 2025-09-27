@@ -165,13 +165,23 @@ export class CertificateService {
   }
 
   async applyFieldMapping(page, mapping, value, font, pageWidth, pageHeight) {
-    const { position, style } = mapping;
+    const { position, style, maxWidth } = mapping;
     const x = position.x;
     const y = pageHeight - position.y - (style.size || 12);
     const color = this.parseColor(style.color || '#000000');
+    let fontSize = style.size || 12;
+    let textWidth = font.widthOfTextAtSize(value, fontSize);
+    const maxAllowedWidth = maxWidth || 200; // Default max width if not specified
+
+    // Shrink font size until text fits within maxAllowedWidth
+    while (textWidth > maxAllowedWidth && fontSize > 6) {
+      fontSize--;
+      textWidth = font.widthOfTextAtSize(value, fontSize);
+    }
+
     page.drawText(value, {
       x, y, font,
-      size: style.size || 12,
+      size: fontSize,
       color: rgb(color.r, color.g, color.b),
     });
   }
