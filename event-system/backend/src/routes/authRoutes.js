@@ -12,7 +12,7 @@ router.post('/register', async (req, res, next) => {
     if (!name || !email || !password) {
       throw new ApiError('Name, email and password are required', 400);
     }
-    const exists = await User.findOne({ email });
+   const exists = await User.findOne({ email }).select('+password');
     if (exists) {
       throw new ApiError('Email already in use', 400);
     }
@@ -37,8 +37,7 @@ router.post('/register', async (req, res, next) => {
 router.post('/login', async (req, res, next) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email });
-    
+    const user = await User.findOne({ email }).select('+password');
     if (!user || !(await bcrypt.compare(password, user.password))) {
       throw new UnauthenticatedError('Invalid credentials');
     }
