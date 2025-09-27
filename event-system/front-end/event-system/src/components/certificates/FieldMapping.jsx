@@ -12,12 +12,12 @@ export default function FieldMapping({ formFields, pdfFields, onMap }) {
 
   return (
     <div className="space-y-4">
-      <h3 className="font-bold mb-2">Map Form Fields to Certificate Placeholders</h3>
+      <h3 className="font-bold mb-2 text-white">Map Form Fields to Certificate Placeholders</h3>
       {pdfFields.map(pdfField => (
         <div key={pdfField} className="flex items-center gap-4">
-          <span className="w-40">{pdfField}</span>
+          <span className="w-40 text-white">{pdfField}</span>
           <select
-            className="border border-black rounded px-2 py-1"
+            className="border border-white rounded px-2 py-1 bg-black text-white"
             value={mapping[pdfField] || ''}
             onChange={e => handleChange(pdfField, e)}
           >

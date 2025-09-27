@@ -7,4 +7,20 @@ export default defineConfig({
   server: {
     host: true,
   },
+  css: {
+    preprocessorOptions: {
+      css: {
+        charset: false
+      }
+    }
+  },
+  build: {
+    rollupOptions: {
+      external: (id) => {
+        // Don't externalize CSS files
+        if (id.endsWith('.css')) return false;
+        return false;
+      }
+    }
+  }
 })
