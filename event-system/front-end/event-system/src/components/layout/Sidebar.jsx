@@ -7,7 +7,7 @@ const navItems = [
   { name: 'Forms', path: '/forms' },
   { name: 'Certificates', path: '/certificates' },
   { name: 'Settings', path: '/settings' },
-  { name: 'Logout', path: '/login' },
+ 
 ];
 
 export default function Sidebar({ darkMode }) {
