@@ -4,7 +4,7 @@ dotenv.config();
 const config = {
   app: { port: +process.env.PORT },
   db: {
-    uri: process.env.MONGO_URI || 'mongodb+srv://ask17500:shalaboo@abookhan.ksl6xqm.mongodb.net/?retryWrites=true&w=majority&appName=abookhan',
+    uri: process.env.MONGO_URI ||  'mongodb://localhost:27017/',
     options: { 
       useNewUrlParser: true, 
       useUnifiedTopology: true,

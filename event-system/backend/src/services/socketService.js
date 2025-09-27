@@ -11,8 +11,7 @@ import MongoStore from 'connect-mongo';
 export const initializeSocket = (io) => {
   // Create session store
   const sessionStore = MongoStore.create({
-    mongoUrl: process.env.MONGO_URI || 'mongodb+srv://ask17500:shalaboo@abookhan.ksl6xqm.mongodb.net/?retryWrites=true&w=majority&appName=abookhan',
-    ttl: 24 * 60 * 60
+    mongoUrl: process.env.MONGO_URI ||  'mongodb://localhost:27017/'
   });
 
   // Middleware to handle session
