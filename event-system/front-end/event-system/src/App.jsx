@@ -20,7 +20,7 @@ function AppShell() {
     const { user, logout } = useAuth();
 
     return (
-        <div className="bg-black text-white min-h-screen">
+        <div className={'bg-black text-white min-h-screen'}>
 			<Router>
 				<div className="flex min-h-screen">
                     {user && <Sidebar darkMode={true} />}
