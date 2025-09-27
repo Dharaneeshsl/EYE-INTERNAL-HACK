@@ -2,24 +2,20 @@
 // Centralized API service for backend communication
 const API_BASE = 'http://localhost:5000/api'; // Adjust as needed
 
-
 export async function login(email, password) {
   const res = await fetch(`${API_BASE}/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
     body: JSON.stringify({ email, password })
   });
   if (!res.ok) throw new Error('Login failed');
   return res.json();
 }
 
-
 export async function register(name, email, password) {
   const res = await fetch(`${API_BASE}/auth/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
     body: JSON.stringify({ name, email, password })
   });
   if (!res.ok) throw new Error('Registration failed');
@@ -64,5 +60,37 @@ export async function uploadCertificateTemplate(file) {
     body: formData
   });
   if (!res.ok) throw new Error('Failed to upload template');
+  return res.json();
+}
+
+export async function getFormQRCode(formId) {
+  const res = await fetch(`${API_BASE}/forms/${formId}/qr`, { credentials: 'include' });
+  if (!res.ok) throw new Error('Failed to generate QR code');
+  return res.json();
+}
+
+export async function getFormById(formId) {
+  const res = await fetch(`${API_BASE}/forms/${formId}`, { credentials: 'include' });
+  if (!res.ok) throw new Error('Failed to fetch form');
+  return res.json();
+}
+
+export async function updateForm(formId, formData) {
+  const res = await fetch(`${API_BASE}/forms/${formId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(formData)
+  });
+  if (!res.ok) throw new Error('Failed to update form');
+  return res.json();
+}
+
+export async function deleteForm(formId) {
+  const res = await fetch(`${API_BASE}/forms/${formId}`, {
+    method: 'DELETE',
+    credentials: 'include'
+  });
+  if (!res.ok) throw new Error('Failed to delete form');
   return res.json();
 }
