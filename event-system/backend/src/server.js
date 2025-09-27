@@ -119,7 +119,7 @@ app.use((err, req, res, next) => {
 
 // Start server
 const HOST = '0.0.0.0';
-const PORT = process.env.PORT || 5000;
+const PORT = config.app.port;
 server.listen(PORT, HOST, () => {
   console.log(`\n🚀 Server running in ${process.env.NODE_ENV || 'development'} mode`);
   console.log(`🔗 API URL: http://${HOST}:${PORT}`);
