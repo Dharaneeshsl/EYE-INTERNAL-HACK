@@ -37,7 +37,7 @@ export default function Sidebar({ darkMode }) {
       <div className="mt-auto pt-6 border-t border-white">
         <div className="text-center text-sm text-white">
           <div className="mb-2">✨ Event Management</div>
-          <div className="text-xs">Made with ❤️</div>
+          
         </div>
       </div>
     </aside>
