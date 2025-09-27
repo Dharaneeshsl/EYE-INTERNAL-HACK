@@ -2,14 +2,19 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const config = {
-  app: { port: +process.env.PORT || 5000 },
+  app: { port: +process.env.PORT || 5001 },
   db: {
     uri: process.env.MONGO_URI,
-    options: { useNewUrlParser: true, useUnifiedTopology: true }
+    options: { 
+      useNewUrlParser: true, 
+      useUnifiedTopology: true,
+      tls: true,
+      tlsAllowInvalidCertificates: true
+    }
   },
   session: {
-    secret: process.env.SESSION_SECRET,
-    name: process.env.SESSION_NAME,
+    secret: process.env.SESSION_SECRET || 'your_secure_session_secret_here',
+    name: process.env.SESSION_NAME || 'sid',
     maxAge: +process.env.SESSION_MAX_AGE || 24 * 60 * 60 * 1000,
     secure: process.env.NODE_ENV === 'production',
     sameSite: process.env.SESSION_SAME_SITE || 'lax'
@@ -24,16 +29,16 @@ const config = {
 
   // Email
   email: {
-    host: process.env.SMTP_HOST,
-    port: parseInt(process.env.SMTP_PORT, 10),
+    host: process.env.SMTP_HOST || 'localhost',
+    port: parseInt(process.env.SMTP_PORT, 10) || 1025,
     secure: process.env.SMTP_SECURE === 'true',
     auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS
+      user: process.env.SMTP_USER || '',
+      pass: process.env.SMTP_PASS || ''
     },
     from: {
-      name: process.env.EMAIL_FROM_NAME,
-      email: process.env.EMAIL_FROM
+      name: process.env.EMAIL_FROM_NAME || 'Event System',
+      email: process.env.EMAIL_FROM || 'no-reply@example.com'
     }
   },
 
@@ -53,10 +58,10 @@ const config = {
 
   // Security
   security: {
-    encryptionKey: process.env.ENCRYPTION_KEY,
+    encryptionKey: process.env.ENCRYPTION_KEY || 'changemechangemechangemechangeme',
     bcryptSaltRounds: parseInt(process.env.BCRYPT_SALT_ROUNDS || '12', 10),
     enableHttps: process.env.ENABLE_HTTPS === 'true',
-    cookieSecret: process.env.COOKIE_SECRET
+    cookieSecret: process.env.COOKIE_SECRET || 'your_cookie_secret_here'
   },
 
   // Certificate
@@ -105,8 +110,6 @@ const config = {
 const validateConfig = () => {
   const required = [
     'session.secret',
-    'email.auth.user',
-    'email.auth.pass',
     'security.encryptionKey'
   ];
 

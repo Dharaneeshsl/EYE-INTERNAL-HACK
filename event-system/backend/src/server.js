@@ -118,11 +118,12 @@ app.use((err, req, res, next) => {
 });
 
 // Start server
-const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => {
+const HOST = '0.0.0.0';
+const PORT = config.app.port;
+server.listen(PORT, HOST, () => {
   console.log(`\n🚀 Server running in ${process.env.NODE_ENV || 'development'} mode`);
-  console.log(`🔗 API URL: ${process.env.BASE_URL}`);
-  console.log(`🌐 WebSocket URL: ws://localhost:${PORT}/socket.io\n`);
+  console.log(`🔗 API URL: http://${HOST}:${PORT}`);
+  console.log(`🌐 WebSocket URL: ws://${HOST}:${PORT}/socket.io\n`);
   console.log('Press CTRL+C to stop the server\n');
 });
 
