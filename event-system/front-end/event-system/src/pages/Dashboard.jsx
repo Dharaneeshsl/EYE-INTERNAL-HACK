@@ -28,20 +28,20 @@ export default function Dashboard() {
         <>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <Card className="flex flex-col items-center">
-              <div className="text-2xl font-bold">{stats.totalResponses}</div>
-              <div className="text-gray-700">Total Responses</div>
+              <div className="text-2xl font-bold text-white">{stats.totalResponses}</div>
+              <div className="text-gray-300">Total Responses</div>
             </Card>
             <Card className="flex flex-col items-center">
-              <div className="text-2xl font-bold">{stats.responseRate}%</div>
-              <div className="text-gray-700">Response Rate</div>
+              <div className="text-2xl font-bold text-white">{stats.responseRate}%</div>
+              <div className="text-gray-300">Response Rate</div>
             </Card>
             <Card className="flex flex-col items-center">
-              <div className="text-2xl font-bold">{stats.certificatesDelivered}</div>
-              <div className="text-gray-700">Certificates Delivered</div>
+              <div className="text-2xl font-bold text-white">{stats.certificatesDelivered}</div>
+              <div className="text-gray-300">Certificates Delivered</div>
             </Card>
             <Card className="flex flex-col items-center">
-              <div className="text-2xl font-bold">{stats.activeForms}</div>
-              <div className="text-gray-700">Active Forms</div>
+              <div className="text-2xl font-bold text-white">{stats.activeForms}</div>
+              <div className="text-gray-300">Active Forms</div>
             </Card>
           </div>
           {/* Charts placeholder */}

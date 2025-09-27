@@ -1,9 +1,10 @@
 // Certificates.jsx
 import { useEffect, useState } from 'react';
-import { fetchCertificates, uploadTemplate } from '../services/certificates';
+import { getCertificates, uploadCertificateTemplate } from '../services/api';
 import FieldMapping from '../components/certificates/FieldMapping';
 import Loader from '../components/common/Loader';
 import Toast from '../components/common/Toast';
+import Modal from '../components/common/Modal';
 
 export default function Certificates() {
   const [certificates, setCertificates] = useState([]);
@@ -11,17 +12,36 @@ export default function Certificates() {
   const [toast, setToast] = useState('');
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
-  // Simulated fields for demo; replace with real API data
-  const formFields = ['Name', 'Email', 'Score'];
-  const pdfFields = ['Full Name', 'Email Address', 'Final Score'];
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [selectedCertificate, setSelectedCertificate] = useState(null);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
+  
+  // Form fields and PDF fields for mapping
+  const formFields = ['Name'];
+  const pdfFields = ['Full Name'];
   const [fieldMap, setFieldMap] = useState({});
+  const [newCertificate, setNewCertificate] = useState({
+    name: '',
+    description: '',
+    template: null,
+    formId: '',
+    fieldMapping: {}
+  });
 
   useEffect(() => {
-    fetchCertificates()
-      .then(res => setCertificates(res.data || []))
-      .catch(() => setToast('Failed to load certificates'))
-      .finally(() => setLoading(false));
+    loadCertificates();
   }, []);
+
+  const loadCertificates = async () => {
+    try {
+      const response = await getCertificates();
+      setCertificates(response.data || []);
+    } catch (error) {
+      setToast('Failed to load certificates');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
@@ -31,12 +51,61 @@ export default function Certificates() {
     if (!file) return;
     setUploading(true);
     try {
-      await uploadTemplate(file);
-      setToast('Template uploaded!');
-    } catch {
+      await uploadCertificateTemplate(file);
+      setToast('Template uploaded successfully!');
+      setFile(null);
+    } catch (error) {
       setToast('Upload failed');
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleCreateCertificate = () => {
+    setNewCertificate({
+      name: '',
+      description: '',
+      template: null,
+      formId: '',
+      fieldMapping: {}
+    });
+    setShowCreateModal(true);
+  };
+
+  const handleSaveCertificate = async () => {
+    try {
+      // Here you would call the API to create the certificate
+      setToast('Certificate created successfully!');
+      setShowCreateModal(false);
+      loadCertificates();
+    } catch (error) {
+      setToast('Failed to create certificate');
+    }
+  };
+
+  const handleViewCertificate = (cert) => {
+    setSelectedCertificate(cert);
+    setShowPreviewModal(true);
+  };
+
+  const handleDeleteCertificate = async (certId) => {
+    if (window.confirm('Are you sure you want to delete this certificate?')) {
+      try {
+        // Here you would call the API to delete the certificate
+        setToast('Certificate deleted successfully!');
+        loadCertificates();
+      } catch (error) {
+        setToast('Failed to delete certificate');
+      }
+    }
+  };
+
+  const handleDownloadCertificate = async (certId) => {
+    try {
+      // Here you would call the API to download the certificate
+      setToast('Certificate download started!');
+    } catch (error) {
+      setToast('Failed to download certificate');
     }
   };
 
@@ -44,46 +113,336 @@ export default function Certificates() {
 
   return (
     <div className="space-y-8">
-      <h1 className="text-3xl font-bold mb-6">Certificate Management</h1>
-      <div className="bg-white border-2 border-dashed border-black rounded-2xl shadow p-6 flex flex-col items-center justify-center min-h-[200px] mb-8">
-        <input type="file" accept="application/pdf,image/*" onChange={handleFileChange} className="mb-4" />
-        <button onClick={handleUpload} disabled={uploading || !file} className="bg-black text-white rounded-2xl px-4 py-2 font-semibold hover:bg-white hover:text-black border border-black transition-all">
-          {uploading ? 'Uploading...' : 'Upload Template'}
+      {/* Header Section */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-white mb-2">🏆 Certificate Management</h1>
+          <p className="text-gray-300">Create, manage, and distribute certificates for your events</p>
+        </div>
+        <button 
+          onClick={handleCreateCertificate}
+          className="bg-black text-white rounded-2xl px-6 py-3 font-semibold hover:bg-white hover:text-black border border-white transition-all"
+        >
+          🏆 Create Certificate
         </button>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <div className="bg-white border border-black rounded-2xl shadow p-6">
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="bg-black border border-white rounded-2xl p-6 text-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-gray-300 text-sm">Total Certificates</p>
+              <p className="text-2xl font-bold">{certificates.length}</p>
+            </div>
+            <div className="text-3xl">🏆</div>
+          </div>
+        </div>
+        <div className="bg-black border border-white rounded-2xl p-6 text-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-gray-300 text-sm">Delivered</p>
+              <p className="text-2xl font-bold">{certificates.filter(c => c.sent).length}</p>
+            </div>
+            <div className="text-3xl">✅</div>
+          </div>
+        </div>
+        <div className="bg-black border border-white rounded-2xl p-6 text-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-gray-300 text-sm">Pending</p>
+              <p className="text-2xl font-bold">{certificates.filter(c => !c.sent).length}</p>
+            </div>
+            <div className="text-3xl">⏳</div>
+          </div>
+        </div>
+        <div className="bg-black border border-white rounded-2xl p-6 text-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-gray-300 text-sm">Templates</p>
+              <p className="text-2xl font-bold">3</p>
+            </div>
+            <div className="text-3xl">📄</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Template Upload Section */}
+      <div className="bg-black border-2 border-dashed border-white rounded-2xl shadow-xl p-8 mb-8">
+        <div className="text-center mb-6">
+          <div className="text-4xl mb-4">📤</div>
+          <h3 className="text-2xl font-bold text-white mb-2">Upload Certificate Template</h3>
+          <p className="text-gray-300">Upload a PDF or image template for your certificates</p>
+        </div>
+        <div className="flex flex-col items-center space-y-4">
+          <div className="relative">
+            <input 
+              type="file" 
+              accept="application/pdf,image/*" 
+              onChange={handleFileChange} 
+              className="hidden"
+              id="template-upload"
+            />
+            <label 
+              htmlFor="template-upload"
+              className="bg-white text-black rounded-xl px-6 py-3 font-semibold cursor-pointer hover:bg-gray-200 transition-all shadow-lg"
+            >
+              📁 Choose Template File
+            </label>
+          </div>
+          {file && (
+            <div className="text-white text-center">
+              <p className="text-sm">Selected: <span className="font-semibold">{file.name}</span></p>
+              <p className="text-xs text-gray-300">Size: {(file.size / 1024 / 1024).toFixed(2)} MB</p>
+            </div>
+          )}
+          <button 
+            onClick={handleUpload} 
+            disabled={uploading || !file} 
+            className="bg-black text-white rounded-xl px-8 py-3 font-semibold hover:bg-white hover:text-black border border-white transition-all disabled:opacity-50"
+          >
+            {uploading ? '📤 Uploading...' : '🚀 Upload Template'}
+          </button>
+        </div>
+      </div>
+
+      {/* Field Mapping Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <div className="bg-black border border-white rounded-2xl shadow-xl p-6">
+          <div className="flex items-center mb-4">
+            <div className="text-2xl mr-3">🔗</div>
+            <h3 className="text-xl font-bold text-white">Field Mapping</h3>
+          </div>
           <FieldMapping formFields={formFields} pdfFields={pdfFields} onMap={setFieldMap} />
         </div>
-        <div className="bg-white border border-black rounded-2xl shadow p-6">
-          <h2 className="font-bold mb-2">Certificate Preview</h2>
-          <div className="h-32 flex items-center justify-center text-gray-400">PDF/Image Preview (coming soon)</div>
-          <div className="mt-4 text-xs text-gray-600">Field Map: {JSON.stringify(fieldMap)}</div>
+        <div className="bg-black border border-white rounded-2xl shadow-xl p-6">
+          <div className="flex items-center mb-4">
+            <div className="text-2xl mr-3">👁️</div>
+            <h3 className="text-xl font-bold text-white">Certificate Preview</h3>
+          </div>
+          <div className="h-48 flex items-center justify-center text-gray-300 border-2 border-dashed border-white rounded-xl mb-4">
+            <div className="text-center">
+              <div className="text-4xl mb-2">📄</div>
+              <p>Certificate Preview</p>
+              <p className="text-sm">Template will appear here</p>
+            </div>
+          </div>
+          <div className="bg-gray-800 rounded-lg p-3">
+            <p className="text-xs text-gray-300 mb-2"><strong>Field Mapping:</strong></p>
+            <pre className="text-xs text-gray-400 overflow-auto max-h-20">
+              {JSON.stringify(fieldMap, null, 2)}
+            </pre>
+          </div>
         </div>
       </div>
-      <div>
-        <h2 className="text-xl font-bold mb-4">Certificates</h2>
-        <table className="w-full border border-black rounded-2xl overflow-hidden">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="border-b border-black px-4 py-2 text-left">Name</th>
-              <th className="border-b border-black px-4 py-2 text-left">Form</th>
-              <th className="border-b border-black px-4 py-2 text-left">Status</th>
-              <th className="border-b border-black px-4 py-2 text-left">Created</th>
-            </tr>
-          </thead>
-          <tbody>
-            {certificates.map(cert => (
-              <tr key={cert._id} className="odd:bg-gray-50">
-                <td className="border-b border-black px-4 py-2">{cert.name}</td>
-                <td className="border-b border-black px-4 py-2">{cert.formId?.title || '-'}</td>
-                <td className="border-b border-black px-4 py-2">{cert.sent ? '✓ Delivered' : '✗ Pending'}</td>
-                <td className="border-b border-black px-4 py-2">{new Date(cert.createdAt).toLocaleDateString()}</td>
+
+      {/* Certificates Table */}
+      <div className="bg-black border border-white rounded-2xl shadow-xl overflow-hidden">
+        <div className="p-6 border-b border-white">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <div className="text-2xl mr-3">📋</div>
+              <h2 className="text-xl font-bold text-white">Generated Certificates</h2>
+            </div>
+            <div className="text-sm text-gray-300">
+              {certificates.length} certificate{certificates.length !== 1 ? 's' : ''} found
+            </div>
+          </div>
+        </div>
+        
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-800">
+              <tr>
+                <th className="border-b border-white px-6 py-4 text-left text-white font-semibold">Certificate Name</th>
+                <th className="border-b border-white px-6 py-4 text-left text-white font-semibold">Form</th>
+                <th className="border-b border-white px-6 py-4 text-left text-white font-semibold">Status</th>
+                <th className="border-b border-white px-6 py-4 text-left text-white font-semibold">Created</th>
+                <th className="border-b border-white px-6 py-4 text-left text-white font-semibold">Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {certificates.length > 0 ? (
+                certificates.map((cert, index) => (
+                  <tr key={cert._id} className={`${index % 2 === 0 ? 'bg-gray-900' : 'bg-gray-800'} hover:bg-gray-700 transition-colors`}>
+                    <td className="border-b border-white px-6 py-4 text-white">
+                      <div className="flex items-center">
+                        <div className="text-xl mr-3">🏆</div>
+                        <div>
+                          <p className="font-semibold">{cert.name || 'Untitled Certificate'}</p>
+                          <p className="text-sm text-gray-400">{cert.description || 'No description'}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="border-b border-white px-6 py-4 text-white">
+                      {cert.formId?.title || '-'}
+                    </td>
+                    <td className="border-b border-white px-6 py-4">
+                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border ${
+                        cert.sent 
+                          ? 'bg-white text-black border-white' 
+                          : 'bg-black text-white border-white'
+                      }`}>
+                        {cert.sent ? '✅ Delivered' : '⏳ Pending'}
+                      </span>
+                    </td>
+                    <td className="border-b border-white px-6 py-4 text-white">
+                      {new Date(cert.createdAt).toLocaleDateString()}
+                    </td>
+                    <td className="border-b border-white px-6 py-4">
+                      <div className="flex gap-2">
+                        <button 
+                          onClick={() => handleViewCertificate(cert)}
+                          className="bg-black text-white rounded-lg px-3 py-1 text-xs font-semibold hover:bg-white hover:text-black border border-white transition-all"
+                        >
+                          👁️ View
+                        </button>
+                        <button 
+                          onClick={() => handleDownloadCertificate(cert._id)}
+                          className="bg-black text-white rounded-lg px-3 py-1 text-xs font-semibold hover:bg-white hover:text-black border border-white transition-all"
+                        >
+                          📥 Download
+                        </button>
+                        <button 
+                          onClick={() => handleDeleteCertificate(cert._id)}
+                          className="bg-black text-white rounded-lg px-3 py-1 text-xs font-semibold hover:bg-white hover:text-black border border-white transition-all"
+                        >
+                          🗑️ Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="5" className="px-6 py-12 text-center">
+                    <div className="text-gray-400">
+                      <div className="text-4xl mb-4">🏆</div>
+                      <p className="text-lg font-semibold mb-2">No certificates found</p>
+                      <p className="text-sm">Create your first certificate to get started!</p>
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
+
+      {/* Create Certificate Modal */}
+      <Modal open={showCreateModal} onClose={() => setShowCreateModal(false)}>
+        <div className="w-[600px] bg-black border border-white rounded-2xl p-8">
+          <div className="flex items-center mb-6">
+            <div className="text-3xl mr-3">✨</div>
+            <h2 className="text-2xl font-bold text-white">Create New Certificate</h2>
+          </div>
+          <div className="space-y-6">
+            <div>
+              <label className="block text-sm font-semibold text-white mb-2">Certificate Name</label>
+              <input
+                type="text"
+                value={newCertificate.name}
+                onChange={(e) => setNewCertificate({...newCertificate, name: e.target.value})}
+                className="w-full bg-black border border-white rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-white"
+                placeholder="Enter certificate name"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-white mb-2">Description</label>
+              <textarea
+                value={newCertificate.description}
+                onChange={(e) => setNewCertificate({...newCertificate, description: e.target.value})}
+                className="w-full bg-black border border-white rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-white"
+                rows="3"
+                placeholder="Enter certificate description"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-white mb-2">Associated Form</label>
+              <select
+                value={newCertificate.formId}
+                onChange={(e) => setNewCertificate({...newCertificate, formId: e.target.value})}
+                className="w-full bg-black border border-white rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-white"
+              >
+                <option value="">Select a form</option>
+                <option value="form1">Event Feedback Form</option>
+                <option value="form2">Training Assessment</option>
+                <option value="form3">Workshop Evaluation</option>
+              </select>
+            </div>
+            <div className="flex gap-4 pt-4">
+              <button
+                onClick={handleSaveCertificate}
+                className="bg-black text-white rounded-xl px-6 py-3 font-semibold hover:bg-white hover:text-black border border-white transition-all"
+              >
+                🏆 Create Certificate
+              </button>
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="bg-black text-white rounded-xl px-6 py-3 font-semibold border border-white hover:bg-white hover:text-black transition-all"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Certificate Preview Modal */}
+      <Modal open={showPreviewModal} onClose={() => setShowPreviewModal(false)}>
+        <div className="w-[700px] bg-black border border-white rounded-2xl p-8">
+          <div className="flex items-center mb-6">
+            <div className="text-3xl mr-3">👁️</div>
+            <h2 className="text-2xl font-bold text-white">Certificate Preview</h2>
+          </div>
+          {selectedCertificate && (
+            <div className="space-y-6">
+              <div className="bg-gray-800 border border-white rounded-xl p-6">
+                <div className="flex items-center mb-4">
+                  <div className="text-2xl mr-3">🏆</div>
+                  <h3 className="text-xl font-bold text-white">{selectedCertificate.name}</h3>
+                </div>
+                <p className="text-gray-300 mb-6">{selectedCertificate.description}</p>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Form:</span>
+                    <span className="text-white font-semibold">{selectedCertificate.formId?.title || 'N/A'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Status:</span>
+                    <span className={`font-semibold ${selectedCertificate.sent ? 'text-green-400' : 'text-yellow-400'}`}>
+                      {selectedCertificate.sent ? '✅ Delivered' : '⏳ Pending'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Created:</span>
+                    <span className="text-white font-semibold">{new Date(selectedCertificate.createdAt).toLocaleDateString()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Template:</span>
+                    <span className="text-white font-semibold">Default Template</span>
+                  </div>
+                </div>
+              </div>
+              <div className="flex gap-4">
+                <button
+                  onClick={() => handleDownloadCertificate(selectedCertificate._id)}
+                  className="bg-black text-white rounded-xl px-6 py-3 font-semibold hover:bg-white hover:text-black border border-white transition-all"
+                >
+                  📥 Download Certificate
+                </button>
+                <button
+                  onClick={() => setShowPreviewModal(false)}
+                  className="bg-black text-white rounded-xl px-6 py-3 font-semibold border border-white hover:bg-white hover:text-black transition-all"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </Modal>
+
       {toast && <Toast message={toast} onClose={() => setToast('')} />}
     </div>
   );

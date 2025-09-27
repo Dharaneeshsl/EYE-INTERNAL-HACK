@@ -3,32 +3,43 @@
 import { NavLink } from 'react-router-dom';
 
 const navItems = [
-  { name: 'Dashboard', path: '/dashboard' },
-  { name: 'Forms', path: '/forms' },
-  { name: 'Certificates', path: '/certificates' },
-  { name: 'Settings', path: '/settings' },
-  { name: 'Logout', path: '/login' },
+  { name: 'Dashboard', path: '/dashboard', icon: '📊' },
+  { name: 'Forms', path: '/forms', icon: '📝' },
+  { name: 'Certificates', path: '/certificates', icon: '🏆' },
 ];
 
 export default function Sidebar({ darkMode }) {
   return (
-    <aside className={`w-64 min-h-screen bg-black text-white flex flex-col py-8 px-4 border-r border-gray-800`}>  
-      <div className="text-2xl font-bold mb-10 tracking-wide">Event System</div>
+    <aside className={`w-64 min-h-screen bg-black text-white flex flex-col py-8 px-6 border-r border-white shadow-xl`}>  
+      <div className="text-2xl font-bold mb-12 tracking-wide text-center text-white">
+        Event System
+      </div>
       <nav className="flex flex-col gap-2">
         {navItems.map((item) => (
           <NavLink
             key={item.name}
             to={item.path}
             className={({ isActive }) =>
-              `rounded-2xl px-4 py-2 font-semibold transition-all border border-transparent ${
-                isActive ? 'bg-white text-black border-black' : 'hover:bg-white hover:text-black'
+              `rounded-xl px-4 py-3 font-semibold text-base transition-all duration-300 border border-white flex items-center gap-3 ${
+                isActive 
+                  ? 'bg-white text-black shadow-lg transform scale-105' 
+                  : 'hover:bg-white hover:text-black hover:transform hover:scale-105'
               }`
             }
           >
-            {item.name}
+            <span className="text-lg">{item.icon}</span>
+            <span>{item.name}</span>
           </NavLink>
         ))}
       </nav>
+      
+      {/* Footer */}
+      <div className="mt-auto pt-6 border-t border-white">
+        <div className="text-center text-sm text-white">
+          <div className="mb-2">✨ Event Management</div>
+          <div className="text-xs">Made with ❤️</div>
+        </div>
+      </div>
     </aside>
   );
 }

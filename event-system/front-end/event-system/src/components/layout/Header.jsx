@@ -3,7 +3,7 @@
 
 export default function Header({ darkMode, toggleDarkMode, user, logout }) {
   return (
-    <header className="w-full bg-black text-white flex items-center justify-between px-8 py-4 border-b border-gray-800">
+    <header className="w-full bg-black text-white flex items-center justify-between px-8 py-4 border-b border-white">
       <div className="text-xl font-bold tracking-wide">Analytics Dashboard</div>
       <div className="flex items-center gap-4">
         {/* Dark mode toggle disabled since we enforce dark globally */}

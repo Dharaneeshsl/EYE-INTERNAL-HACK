@@ -1,0 +1,140 @@
+/* SurveyBuilder.css - Ensure SurveyJS Creator displays properly */
+
+/* Main SurveyJS Creator container */
+.sv_main {
+  background-color: #1a1a1a !important;
+  color: #ffffff !important;
+  min-height: 500px !important;
+}
+
+/* Toolbox (left panel) */
+.sv_toolbox {
+  background-color: #1a1a1a !important;
+  border: 1px solid #ffffff !important;
+  color: #ffffff !important;
+  min-width: 200px !important;
+}
+
+.sv_toolbox_item {
+  background-color: #1a1a1a !important;
+  border: 1px solid #ffffff !important;
+  color: #ffffff !important;
+  margin: 4px !important;
+  padding: 8px !important;
+  border-radius: 4px !important;
+}
+
+.sv_toolbox_item:hover {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+/* Survey canvas (center panel) */
+.sv_canvas {
+  background-color: #1a1a1a !important;
+  border: 1px solid #ffffff !important;
+  color: #ffffff !important;
+  min-height: 400px !important;
+}
+
+/* Property grid (right panel) */
+.sv_property-editor {
+  background-color: #1a1a1a !important;
+  border: 1px solid #ffffff !important;
+  color: #ffffff !important;
+  min-width: 250px !important;
+}
+
+.sv_property-editor input,
+.sv_property-editor textarea,
+.sv_property-editor select {
+  background-color: #1a1a1a !important;
+  border: 1px solid #ffffff !important;
+  color: #ffffff !important;
+  padding: 4px !important;
+}
+
+/* Question elements */
+.sv_q {
+  background-color: #2a2a2a !important;
+  border: 1px solid #ffffff !important;
+  color: #ffffff !important;
+  margin: 10px !important;
+  padding: 15px !important;
+  border-radius: 8px !important;
+}
+
+.sv_q_title {
+  color: #ffffff !important;
+  font-weight: bold !important;
+}
+
+.sv_q_description {
+  color: #cccccc !important;
+}
+
+/* Input fields */
+.sv_q input,
+.sv_q textarea,
+.sv_q select {
+  background-color: #1a1a1a !important;
+  border: 1px solid #ffffff !important;
+  color: #ffffff !important;
+  padding: 8px !important;
+}
+
+/* Tabs */
+.sv_tabs {
+  background-color: #1a1a1a !important;
+  border-bottom: 1px solid #ffffff !important;
+}
+
+.sv_tabs .sv_tab {
+  background-color: #1a1a1a !important;
+  border: 1px solid #ffffff !important;
+  color: #ffffff !important;
+  padding: 8px 16px !important;
+}
+
+.sv_tabs .sv_tab:hover {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+.sv_tabs .sv_tab.sv_tab--active {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+/* Buttons */
+.sv_btn {
+  background-color: #1a1a1a !important;
+  border: 1px solid #ffffff !important;
+  color: #ffffff !important;
+  padding: 8px 16px !important;
+  border-radius: 4px !important;
+}
+
+.sv_btn:hover {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+/* Ensure all text is visible */
+.sv_main * {
+  color: inherit !important;
+}
+
+/* Override any white backgrounds */
+.sv_main *[style*="background-color: white"],
+.sv_main *[style*="background-color: #ffffff"],
+.sv_main *[style*="background-color: rgb(255, 255, 255)"] {
+  background-color: #1a1a1a !important;
+}
+
+/* Override any black text */
+.sv_main *[style*="color: black"],
+.sv_main *[style*="color: #000000"],
+.sv_main *[style*="color: rgb(0, 0, 0)"] {
+  color: #ffffff !important;
+}
