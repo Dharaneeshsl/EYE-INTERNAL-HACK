@@ -7,7 +7,7 @@ export const sessionMiddleware = session({
   resave: false,
   saveUninitialized: false,
   store: MongoStore.create({
-    mongoUrl: process.env.MONGO_URI || 'mongodb://localhost:27017/event_feedback',
+    mongoUrl: process.env.MONGO_URI,
     collectionName: 'sessions',
     ttl: 24 * 60 * 60, // 1 day
     autoRemove: 'native',
