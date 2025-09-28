@@ -37,7 +37,7 @@ function AppShell() {
 								<Route path="/feedback/:formId" element={<FeedbackForm />} />
 								<Route path="/certificates" element={<ProtectedRoute><Certificates /></ProtectedRoute>} />
 								<Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-								<Route path="/" element={<Navigate to="/dashboard" />} />
+								<Route path="/" element={<Navigate to="/login" />} />
 							</Routes>
 						</main>
 					</div>
