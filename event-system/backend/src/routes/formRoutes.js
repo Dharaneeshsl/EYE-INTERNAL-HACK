@@ -5,6 +5,8 @@ import { isAuthenticated, isAdmin } from '../middleware/auth.js';
 import Form from '../models/Form.js';
 import Response from '../models/Response.js';
 import Certificate from '../models/Certificate.js';
+import User from '../models/User.js';
+import SentCertificate from '../models/SentCertificate.js';
 import certificateService from '../services/certificateService.js';
 import { ApiError } from '../utils/errors.js';
 
@@ -175,21 +177,49 @@ router.post('/:id/submit', async (req, res, next) => {
     try {
       const certificate = await Certificate.findOne({ formId: form._id, isActive: true });
       if (certificate?.autoSend) {
-        const pdfBuffer = await certificateService.generateCertificate({
-          certificateId: certificate._id,
-          responseId: response._id,
-          data: response.answers
-        });
-
-        // Determine recipient email: prefer populated user email, else look for email answer
-        let recipientEmail = req.user?.email;
-        if (!recipientEmail && Array.isArray(response.answers)) {
+        // Determine recipient email from form answer only
+        let recipientEmail = null;
+        if (Array.isArray(response.answers)) {
           const emailAns = response.answers.find(a => a.type === 'email' || a.qId?.toLowerCase().includes('email'));
-          if (emailAns?.text) recipientEmail = emailAns.text;
-          if (emailAns?.val && typeof emailAns.val === 'string') recipientEmail = emailAns.val;
+          if (emailAns?.text) recipientEmail = String(emailAns.text).trim();
+          if (emailAns?.val && typeof emailAns.val === 'string') recipientEmail = String(emailAns.val).trim();
+        }
+
+        // Determine attendee name/email from DB user if available
+        let attendeeName = undefined;
+        let dbEmail = undefined;
+        if (req.user?.id) {
+          const dbUser = await User.findById(req.user.id).select('name email');
+          attendeeName = dbUser?.name;
+          dbEmail = dbUser?.email;
+        }
+
+        // Require email match between form and DB (when DB email exists)
+        if (dbEmail && recipientEmail && dbEmail.toLowerCase() !== recipientEmail.toLowerCase()) {
+          // Do not send if mismatch; silently accept submission
+          return res.status(201).json({ success: true, data: response });
+        }
+
+        // Ensure only one certificate per attendee (by certificate + recipientEmail)
+        if (recipientEmail) {
+          const alreadySent = await SentCertificate.findOne({ certificate: certificate._id, recipientEmail }).lean();
+          if (alreadySent) {
+            return res.status(201).json({ success: true, data: response });
+          }
+        }
+
+        // Merge attendee name from DB into data for rendering
+        const mergedAnswers = Array.isArray(response.answers) ? [...response.answers] : [];
+        if (attendeeName) {
+          mergedAnswers.push({ qId: 'attendee_name', text: attendeeName, val: attendeeName, type: 'text' });
         }
 
         if (recipientEmail) {
+          const pdfBuffer = await certificateService.generateCertificate({
+            certificateId: certificate._id,
+            responseId: response._id,
+            data: mergedAnswers
+          });
           const sendResult = await certificateService.sendCertificate({
             certificateId: certificate._id,
             responseId: response._id,
@@ -200,6 +230,7 @@ router.post('/:id/submit', async (req, res, next) => {
           if (sendResult.sent) {
             response.cert = { sent: true, at: new Date() };
             await response.save();
+            await SentCertificate.create({ certificate: certificate._id, response: response._id, recipientEmail });
           }
         }
       }

@@ -1,6 +1,6 @@
 // Certificates.jsx
 import { useEffect, useState } from 'react';
-import { getCertificates, uploadCertificateTemplate } from '../services/api';
+import { getCertificates, uploadCertificateTemplate, createCertificate, getForms } from '../services/api';
 import FieldMapping from '../components/certificates/FieldMapping';
 import Loader from '../components/common/Loader';
 import Toast from '../components/common/Toast';
@@ -12,9 +12,11 @@ export default function Certificates() {
   const [toast, setToast] = useState('');
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [creating, setCreating] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedCertificate, setSelectedCertificate] = useState(null);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [forms, setForms] = useState([]);
   
   // Form fields and PDF fields for mapping
   const formFields = ['Name'];
@@ -30,12 +32,17 @@ export default function Certificates() {
 
   useEffect(() => {
     loadCertificates();
+    loadForms();
   }, []);
 
   const loadCertificates = async () => {
     try {
       const response = await getCertificates();
-      setCertificates(response.data || []);
+      const items = response.data || [];
+      setCertificates(items);
+      if (!selectedCertificate && items.length > 0) {
+        setSelectedCertificate(items[0]);
+      }
     } catch (error) {
       setToast('Failed to load certificates');
     } finally {
@@ -43,19 +50,39 @@ export default function Certificates() {
     }
   };
 
+  const loadForms = async () => {
+    try {
+      const res = await getForms();
+      setForms(res.data || []);
+    } catch (e) {
+      // keep silent but allow manual entry
+    }
+  };
+
   const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
+    const picked = e.target.files[0];
+    setFile(picked);
+    if (!selectedCertificate && picked) {
+      const baseName = picked.name?.replace(/\.[^.]+$/, '') || '';
+      setNewCertificate((prev) => ({ ...prev, name: baseName }));
+      setShowCreateModal(true);
+    }
   };
 
   const handleUpload = async () => {
     if (!file) return;
+    if (!selectedCertificate) {
+      setToast('Select or create a certificate first.');
+      return;
+    }
     setUploading(true);
     try {
-      await uploadCertificateTemplate(file);
+      await uploadCertificateTemplate(selectedCertificate._id, file);
       setToast('Template uploaded successfully!');
       setFile(null);
+      await loadCertificates();
     } catch (error) {
-      setToast('Upload failed');
+      setToast(error?.message || 'Upload failed');
     } finally {
       setUploading(false);
     }
@@ -73,13 +100,40 @@ export default function Certificates() {
   };
 
   const handleSaveCertificate = async () => {
+    // Validate inputs
+    if (!newCertificate.name?.trim()) {
+      setToast('Enter a certificate name');
+      return;
+    }
+    if (!newCertificate.formId) {
+      setToast('Select an associated form');
+      return;
+    }
+    if (!file) {
+      setToast('Choose a template file to create the certificate');
+      return;
+    }
+    setCreating(true);
     try {
-      // Here you would call the API to create the certificate
+      let payload = { ...newCertificate };
+      // convert file to base64
+      const toBase64 = (f) => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(f);
+      });
+      payload = { ...payload, template: await toBase64(file) };
+      const res = await createCertificate(payload);
       setToast('Certificate created successfully!');
       setShowCreateModal(false);
-      loadCertificates();
+      setSelectedCertificate(res.data);
+      await loadCertificates();
+      setFile(null);
     } catch (error) {
-      setToast('Failed to create certificate');
+      setToast(error?.message || 'Failed to create certificate');
+    } finally {
+      setCreating(false);
     }
   };
 
@@ -365,17 +419,18 @@ export default function Certificates() {
                 className="w-full bg-black border border-white rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-white"
               >
                 <option value="">Select a form</option>
-                <option value="form1">Event Feedback Form</option>
-                <option value="form2">Training Assessment</option>
-                <option value="form3">Workshop Evaluation</option>
+                {forms.map((f) => (
+                  <option key={f._id} value={f._id}>{f.title}</option>
+                ))}
               </select>
             </div>
             <div className="flex gap-4 pt-4">
               <button
                 onClick={handleSaveCertificate}
-                className="bg-black text-white rounded-xl px-6 py-3 font-semibold hover:bg-white hover:text-black border border-white transition-all"
+                disabled={creating}
+                className="bg-black text-white rounded-xl px-6 py-3 font-semibold hover:bg-white hover:text-black border border-white transition-all disabled:opacity-50"
               >
-                🏆 Create Certificate
+                {creating ? 'Creating...' : '🏆 Create Certificate'}
               </button>
               <button
                 onClick={() => setShowCreateModal(false)}

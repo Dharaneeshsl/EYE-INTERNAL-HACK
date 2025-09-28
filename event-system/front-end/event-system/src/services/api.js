@@ -53,10 +53,21 @@ export async function getCertificates() {
   return res.json();
 }
 
-export async function uploadCertificateTemplate(file) {
+export async function createCertificate(data) {
+  const res = await fetch(`${API_BASE}/certificates`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) throw new Error('Failed to create certificate');
+  return res.json();
+}
+
+export async function uploadCertificateTemplate(certificateId, file) {
   const formData = new FormData();
   formData.append('template', file);
-  const res = await fetch(`${API_BASE}/certificates/template`, {
+  const res = await fetch(`${API_BASE}/certificates/${certificateId}/upload-template`, {
     method: 'POST',
     credentials: 'include',
     body: formData

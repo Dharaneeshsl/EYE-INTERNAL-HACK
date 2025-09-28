@@ -14,7 +14,10 @@ export default function Dashboard() {
 
   useEffect(() => {
     getDashboardStats()
-      .then(setStats)
+      .then((res) => {
+        const overview = res?.data?.overview || res?.overview || res;
+        setStats(overview);
+      })
       .catch(() => setError('Failed to load stats'))
       .finally(() => setLoading(false));
   }, []);
@@ -28,19 +31,26 @@ export default function Dashboard() {
         <>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <Card className="flex flex-col items-center">
-              <div className="text-2xl font-bold text-white">{stats.totalResponses}</div>
+              <div className="text-2xl font-bold text-white">{stats.totalResponses ?? 0}</div>
               <div className="text-gray-300">Total Responses</div>
             </Card>
             <Card className="flex flex-col items-center">
-              <div className="text-2xl font-bold text-white">{stats.responseRate}%</div>
+              <div className="text-2xl font-bold text-white">{
+                (() => {
+                  const totalForms = stats.totalForms ?? 0;
+                  const totalResponses = stats.totalResponses ?? 0;
+                  if (!totalForms) return 0;
+                  return Math.round((totalResponses / totalForms) * 100);
+                })()
+              }%</div>
               <div className="text-gray-300">Response Rate</div>
             </Card>
             <Card className="flex flex-col items-center">
-              <div className="text-2xl font-bold text-white">{stats.certificatesDelivered}</div>
+              <div className="text-2xl font-bold text-white">{stats.certificatesSent ?? 0}</div>
               <div className="text-gray-300">Certificates Delivered</div>
             </Card>
             <Card className="flex flex-col items-center">
-              <div className="text-2xl font-bold text-white">{stats.activeForms}</div>
+              <div className="text-2xl font-bold text-white">{stats.totalForms ?? 0}</div>
               <div className="text-gray-300">Active Forms</div>
             </Card>
           </div>
