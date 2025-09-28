@@ -30,8 +30,8 @@ function AppShell() {
                         {user && <Header darkMode={darkMode} user={user} logout={logout} />}
 						<main className="flex-1 p-6">
 							<Routes>
-								<Route path="/login" element={!user ? <Login /> : <Navigate to="/dashboard" />} />
-								<Route path="/register" element={!user ? <Register /> : <Navigate to="/dashboard" />} />
+								<Route path="/login" element={<Login />} />
+								<Route path="/register" element={<Register />} />
 								<Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
 								<Route path="/forms" element={<ProtectedRoute><FormBuilder /></ProtectedRoute>} />
 								<Route path="/feedback/:formId" element={<FeedbackForm />} />
