@@ -1,5 +1,5 @@
 // FormBuilder.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import SurveyBuilder from '../components/forms/SurveyBuilder';
 import Modal from '../components/common/Modal';
 import { getForms, createForm, getFormQRCode, getFormById, updateForm, deleteForm } from '../services/api';
@@ -72,10 +72,57 @@ export default function FormBuilder() {
     }
   };
 
-  const handleFormUpdate = (surveyJson) => {
-    console.log('Form updated:', surveyJson);
-    setJson(surveyJson);
+  const handlePublish = async () => {
+    if (!json || !json.pages || !json.pages[0]) {
+      setToast('Build your form before publishing.');
+      return;
+    }
+    setLoading(true);
+    try {
+      // Send in a structure the backend can map cleanly
+      const payload = {
+        title: json.title || 'Untitled Form',
+        description: json.description || '',
+        pages: [{ elements: json.pages?.[0]?.elements || [] }],
+        settings: {
+          requiresLogin: false,
+          isAnonymous: true,
+          allowMultipleResponses: true,
+          isActive: true
+        },
+        isPublished: true
+      };
+
+      const created = await createForm(payload);
+      const formId = created?.data?._id || created?._id;
+      if (!formId) throw new Error('Missing form id after publish');
+
+      const res = await getForms();
+      setForms(res.data || []);
+
+      const qr = await getFormQRCode(formId);
+      setQrData(qr.data);
+      setSelectedForm(formId);
+      setQrModal(true);
+      setToast('Form published! Link and QR generated.');
+    } catch (e) {
+      try {
+        // Surface backend error message if available
+        const detail = e?.message || 'Unknown error';
+        setToast(`Failed to publish form: ${detail}`);
+      } catch {
+        setToast('Failed to publish form');
+      }
+      console.error('Publish error:', e);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const handleFormUpdate = useCallback((surveyJson) => {
+    // Keep minimal logging to avoid console spam
+    setJson(surveyJson);
+  }, []);
 
   const handleCopyLink = async (formId) => {
     try {
@@ -118,11 +165,11 @@ export default function FormBuilder() {
       <div className="bg-black border border-white rounded-2xl shadow-lg p-6 flex flex-col items-center justify-center min-h-[300px] w-full">
         <SurveyBuilder onSave={handleFormUpdate} json={json} />
       </div>
-      <div className="flex gap-4 mt-6">
+      <div className="flex gap-4 mt-6 items-center">
         <button onClick={() => setPreview(true)} className="bg-black text-white rounded-2xl px-6 py-2 font-semibold hover:bg-white hover:text-black border border-white transition-all">Preview</button>
-        <div className="text-gray-400 text-sm flex items-center">
-          💡 Use the "Save Form" button in the form builder above to publish your form
-        </div>
+        <button onClick={handlePublish} disabled={loading} className="bg-green-500 text-white rounded-2xl px-6 py-2 font-semibold hover:bg-green-600 border border-white transition-all disabled:opacity-50">
+          {loading ? 'Publishing...' : 'Publish'}
+        </button>
       </div>
       <div className="mt-10">
         <h2 className="text-xl font-bold mb-4">Created Forms</h2>

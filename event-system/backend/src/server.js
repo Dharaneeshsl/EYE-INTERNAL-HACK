@@ -52,8 +52,19 @@ connectDB();
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
   contentSecurityPolicy: {
+    useDefaults: true,
     directives: {
-      'connect-src': ["'self'", process.env.CORS_ORIGIN || 'http://localhost:3000']
+      'default-src': ["'self'"],
+      'connect-src': [
+        "'self'",
+        process.env.CORS_ORIGIN || 'http://localhost:5173',
+        'ws://localhost:5000',
+        'http://localhost:5000'
+      ],
+      'style-src': ["'self'", "'unsafe-inline'", 'https:', 'data:'],
+      'script-src': ["'self'", "'unsafe-inline'", 'https:'],
+      'img-src': ["'self'", 'data:', 'https:'],
+      'font-src': ["'self'", 'data:', 'https:']
     }
   }
 }));

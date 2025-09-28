@@ -14,10 +14,6 @@ export default function Settings() {
       </div>
       <div className="bg-white border border-black rounded-2xl shadow p-6">
         <h2 className="font-bold mb-4">App Settings</h2>
-        <div className="flex items-center gap-4 mb-4">
-          <label className="font-semibold">Dark Mode</label>
-          <input type="checkbox" className="accent-black w-5 h-5" />
-        </div>
         <div className="flex items-center gap-4">
           <label className="font-semibold">Notifications</label>
           <input type="checkbox" className="accent-black w-5 h-5" />

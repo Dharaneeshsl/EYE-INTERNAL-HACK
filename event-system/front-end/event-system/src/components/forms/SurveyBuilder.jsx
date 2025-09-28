@@ -112,27 +112,29 @@ export default function SurveyBuilder({ json, onSave }) {
     }
   };
 
-  // Update form data when questions change
+  // Debounced update when form data changes
   React.useEffect(() => {
-    const surveyJson = {
-      title: formData.title,
-      description: formData.description,
-      pages: [{
-        name: "page1",
-        title: "Page 1",
-        elements: formData.questions.map(q => ({
-          type: q.type,
-          name: `question_${q.id}`,
-          title: q.title,
-          isRequired: q.required,
-          ...(q.options.length > 0 && { choices: q.options })
-        }))
-      }]
-    };
-    
-    if (onSave) {
-      onSave(surveyJson);
-    }
+    const timer = setTimeout(() => {
+      const surveyJson = {
+        title: formData.title,
+        description: formData.description,
+        pages: [{
+          name: "page1",
+          title: "Page 1",
+          elements: formData.questions.map(q => ({
+            type: q.type,
+            name: `question_${q.id}`,
+            title: q.title,
+            isRequired: q.required,
+            ...(q.options.length > 0 && { choices: q.options })
+          }))
+        }]
+      };
+      if (onSave) {
+        onSave(surveyJson);
+      }
+    }, 250);
+    return () => clearTimeout(timer);
   }, [formData, onSave]);
 
     return (
@@ -320,8 +322,8 @@ export default function SurveyBuilder({ json, onSave }) {
               <div>No questions added yet</div>
               <div style={{ fontSize: "14px", marginTop: "5px" }}>
                 Click on question types to add them, then drag to reorder
-              </div>
-            </div>
+                    </div>
+                  </div>
           ) : (
     <div style={{ 
               display: "flex", 
@@ -367,7 +369,7 @@ export default function SurveyBuilder({ json, onSave }) {
                         padding: "4px"
                       }}>
                         ⋮⋮
-                      </div>
+            </div>
                       <h4 style={{ 
                         color: "#ffffff", 
                         margin: 0,
@@ -376,7 +378,7 @@ export default function SurveyBuilder({ json, onSave }) {
                         {index + 1}. {question.title}
                         {question.required && <span style={{ color: "#ff6b6b", marginLeft: "5px" }}>*</span>}
                       </h4>
-                    </div>
+          </div>
                     <button
                       onClick={() => deleteQuestion(question.id)}
                       style={{
@@ -392,7 +394,7 @@ export default function SurveyBuilder({ json, onSave }) {
                     >
                       🗑️ Delete
                     </button>
-                  </div>
+        </div>
                   
                   <input
                     type="text"
@@ -441,10 +443,10 @@ export default function SurveyBuilder({ json, onSave }) {
                     }}>
                       Type: {question.type}
                     </span>
-                  </div>
-                  
+      </div>
+
                   {(question.type === 'radiogroup' || question.type === 'checkbox' || question.type === 'dropdown') && (
-                    <div style={{ 
+    <div style={{ 
                       marginTop: "10px",
                       padding: "10px",
                       backgroundColor: "#333333",
@@ -452,7 +454,7 @@ export default function SurveyBuilder({ json, onSave }) {
                       border: "1px solid #555555"
                     }}>
                       <label style={{ 
-                        color: "#ffffff", 
+          color: "#ffffff",
                         fontSize: "14px", 
                         display: "block", 
                         marginBottom: "10px",
@@ -528,51 +530,12 @@ export default function SurveyBuilder({ json, onSave }) {
                   )}
                 </div>
               ))}
-            </div>
-          )}
+        </div>
+      )}
         </div>
       </div>
 
-      {/* Save Button - Only one button */}
-      <div style={{ marginTop: "20px", textAlign: "center" }}>
-        <button
-          onClick={() => {
-            // Create the survey JSON
-            const surveyJson = {
-              title: formData.title,
-              description: formData.description,
-              pages: [{
-                name: "page1",
-                title: "Page 1",
-                elements: formData.questions.map(q => ({
-                  type: q.type,
-                  name: `question_${q.id}`,
-                  title: q.title,
-                  isRequired: q.required,
-                  ...(q.options.length > 0 && { choices: q.options })
-                }))
-              }]
-            };
-            
-            // Call the parent's save function
-            if (onSave) {
-              onSave(surveyJson);
-            }
-          }}
-          style={{
-            padding: "12px 24px",
-            backgroundColor: "#22c55e",
-            color: "#ffffff",
-            border: "none",
-            borderRadius: "8px",
-            cursor: "pointer",
-            fontSize: "16px",
-            fontWeight: "bold"
-          }}
-        >
-          💾 Save Form
-        </button>
-      </div>
+      {/* Save button removed; publishing handled in parent */}
     </div>
   );
 }

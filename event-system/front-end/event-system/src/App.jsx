@@ -12,20 +12,22 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import { useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ThemeProvider, useTheme } from './context/ThemeContext';
 import ProtectedRoute from './components/layout/ProtectedRoute';
 import './App.css';
 
 
 function AppShell() {
     const { user, logout } = useAuth();
+    const { darkMode } = useTheme();
 
     return (
-        <div className={'bg-black text-white min-h-screen'}>
+        <div className={darkMode ? 'bg-black text-white min-h-screen' : 'bg-white text-black min-h-screen'}>
 			<Router>
 				<div className="flex min-h-screen">
-                    {user && <Sidebar darkMode={true} />}
+                    {user && <Sidebar darkMode={darkMode} />}
 					<div className="flex-1 flex flex-col">
-                        {user && <Header darkMode={true} toggleDarkMode={() => {}} user={user} logout={logout} />}
+                        {user && <Header darkMode={darkMode} user={user} logout={logout} />}
 						<main className="flex-1 p-6">
 							<Routes>
 								<Route path="/login" element={!user ? <Login /> : <Navigate to="/dashboard" />} />
@@ -47,9 +49,11 @@ function AppShell() {
 
 function App() {
 	return (
-		<AuthProvider>
-			<AppShell />
-		</AuthProvider>
+		<ThemeProvider>
+			<AuthProvider>
+				<AppShell />
+			</AuthProvider>
+		</ThemeProvider>
 	);
 }
 

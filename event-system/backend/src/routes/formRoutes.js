@@ -13,13 +13,61 @@ const router = express.Router();
 const handleAsync = fn => (req, res, next) => fn(req, res, next).catch(next);
 
 // Simplified form operations
-router.post('/', isAuthenticated, isAdmin, handleAsync(async (req, res) => {
-  const form = await Form.create({ ...req.body, createdBy: req.user._id });
+// Allow any authenticated user to create forms (was admin-only)
+router.post('/', isAuthenticated, handleAsync(async (req, res) => {
+  // Transform incoming SurveyBuilder-style questions to our schema
+  const incoming = { ...req.body };
+  const elements = Array.isArray(incoming.questions) && incoming.questions.length > 0 && incoming.questions[0]?.type
+    ? incoming.questions
+    : Array.isArray(incoming.pages?.[0]?.elements)
+      ? incoming.pages[0].elements
+      : incoming.questions;
+
+  const typeMap = {
+    text: 'text',
+    comment: 'textarea',
+    radiogroup: 'radio',
+    checkbox: 'checkbox',
+    dropdown: 'dropdown',
+    rating: 'rating',
+    scale: 'scale',
+    date: 'date',
+    email: 'email'
+  };
+
+  const questions = Array.isArray(elements)
+    ? elements.map((el, idx) => ({
+        qId: el.name || `q_${idx + 1}`,
+        type: typeMap[el.type] || 'text',
+        text: el.title || el.text || `Question ${idx + 1}`,
+        desc: el.description,
+        req: Boolean(el.isRequired),
+        opts: Array.isArray(el.choices)
+          ? el.choices.map((c, i) =>
+              typeof c === 'string'
+                ? { val: String(i + 1), lbl: c }
+                : { val: String(c.value ?? i + 1), lbl: String(c.text ?? c.label ?? '') }
+            )
+          : []
+      }))
+    : [];
+
+  const payload = {
+    title: incoming.title,
+    description: incoming.description,
+    settings: incoming.settings,
+    isPublished: incoming.isPublished === true,
+    questions,
+    createdBy: req.user.id
+  };
+
+  const form = await Form.create(payload);
   res.status(201).json({ data: form });
 }));
 
 // Simplified form retrieval
-router.get('/', isAuthenticated, isAdmin, handleAsync(async (req, res) => {
+// Allow any authenticated user to list forms (consider scoping by owner later)
+router.get('/', isAuthenticated, handleAsync(async (req, res) => {
   const forms = await Form.find().select('title createdAt responseCount').sort('-createdAt');
   res.json({ data: forms });
 }));
@@ -174,7 +222,8 @@ router.post('/:id/submit', async (req, res, next) => {
  * GET /api/forms/:id/qr
  * @access Private (Admin)
  */
-router.get('/:id/qr', isAuthenticated, isAdmin, async (req, res, next) => {
+// Allow any authenticated user to generate a QR for their form
+router.get('/:id/qr', isAuthenticated, async (req, res, next) => {
   try {
     const form = await Form.findById(req.params.id);
 
@@ -182,7 +231,8 @@ router.get('/:id/qr', isAuthenticated, isAdmin, async (req, res, next) => {
       throw new ApiError('Form not found', 404);
     }
 
-    const formUrl = `${process.env.FRONTEND_URL}/forms/${form.slug || form._id}`;
+  const frontendBase = process.env.FRONTEND_URL || req.headers.origin || 'http://localhost:5173';
+  const formUrl = `${frontendBase}/feedback/${form.slug || form._id}`;
     const qrCode = await QRCode.toDataURL(formUrl);
 
     res.json({
