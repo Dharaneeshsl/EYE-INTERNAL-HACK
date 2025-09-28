@@ -1,0 +1,224 @@
+# Event System - Requirements and Dependencies
+
+## Backend Dependencies (Node.js)
+
+### Core Framework
+- express@^4.18.2
+- mongoose@^7.5.0
+- cors@^2.8.5
+- dotenv@^16.3.1
+- bcryptjs@^2.4.3
+- jsonwebtoken@^9.0.2
+- express-session@^1.17.3
+- connect-mongo@^5.0.0
+
+### Real-time Communication
+- socket.io@^4.7.2
+
+### File Handling
+- multer@^1.4.5-lts.1
+- pdf-lib@^1.17.1
+- qrcode@^1.5.3
+
+### Email Service
+- nodemailer@^6.9.4
+
+### Analytics & AI
+- natural@^6.5.0
+- sentiment@^0.2.1
+
+### Development Dependencies
+- nodemon@^3.0.1
+- jest@^29.6.2
+- supertest@^6.3.3
+
+## Frontend Dependencies (React)
+
+### Core Framework
+- react@^18.2.0
+- react-dom@^18.2.0
+- react-router-dom@^6.15.0
+
+### Build Tools
+- vite@^4.4.9
+- @vitejs/plugin-react@^4.0.4
+
+### Form Builder
+- survey-core@^1.9.100
+- survey-creator-core@^1.9.100
+- survey-creator-react@^1.9.100
+- survey-react-ui@^1.9.100
+
+### Styling
+- tailwindcss@^3.3.3
+- autoprefixer@^10.4.15
+- postcss@^8.4.29
+
+### Charts & Visualization
+- chart.js@^4.4.0
+- react-chartjs-2@^5.2.0
+
+### HTTP Client
+- axios@^1.5.0
+
+### Development Dependencies
+- @types/react@^18.2.22
+- @types/react-dom@^18.2.7
+- eslint@^8.48.0
+- eslint-plugin-react@^7.33.2
+- eslint-plugin-react-hooks@^4.6.0
+- eslint-plugin-react-refresh@^0.4.4
+
+## System Requirements
+
+### Operating System
+- Windows 10/11
+- macOS 10.15+
+- Linux (Ubuntu 18.04+)
+
+### Node.js
+- Version: 16.0.0 or higher
+- Recommended: 18.0.0 or higher
+
+### MongoDB
+- Version: 4.4.0 or higher
+- Recommended: 5.0.0 or higher
+
+### Memory
+- Minimum: 4GB RAM
+- Recommended: 8GB RAM
+
+### Storage
+- Minimum: 2GB free space
+- Recommended: 5GB free space
+
+## Browser Support
+
+### Frontend
+- Chrome 90+
+- Firefox 88+
+- Safari 14+
+- Edge 90+
+
+## Installation Commands
+
+### Backend Setup
+```bash
+cd backend
+npm install express mongoose cors dotenv bcryptjs jsonwebtoken express-session connect-mongo socket.io multer pdf-lib qrcode nodemailer natural sentiment
+npm install --save-dev nodemon jest supertest
+```
+
+### Frontend Setup
+```bash
+cd front-end/event-system
+npm install react react-dom react-router-dom
+npm install survey-core survey-creator-core survey-creator-react survey-react-ui
+npm install tailwindcss autoprefixer postcss
+npm install chart.js react-chartjs-2 axios
+npm install --save-dev @types/react @types/react-dom eslint eslint-plugin-react eslint-plugin-react-hooks eslint-plugin-react-refresh
+```
+
+## Environment Variables
+
+### Backend (.env)
+```
+PORT=5000
+MONGODB_URI=mongodb://localhost:27017/event-system
+JWT_SECRET=your-secret-key-here
+SESSION_SECRET=your-session-secret-here
+EMAIL_USER=your-email@gmail.com
+EMAIL_PASS=your-app-password
+```
+
+### Frontend (.env)
+```
+VITE_API_URL=http://localhost:5000/api
+VITE_SOCKET_URL=http://localhost:5000
+```
+
+## Database Schema
+
+### Collections
+- users (authentication and user management)
+- forms (form definitions and metadata)
+- responses (form submission data)
+- certificates (certificate templates and data)
+- sentcertificates (generated certificate records)
+
+## API Endpoints
+
+### Authentication
+- POST /api/auth/register
+- POST /api/auth/login
+- POST /api/auth/logout
+
+### Forms
+- GET /api/forms
+- POST /api/forms
+- GET /api/forms/:id
+- PUT /api/forms/:id
+- DELETE /api/forms/:id
+- GET /api/forms/:id/qr
+
+### Analytics
+- GET /api/analytics/dashboard
+- GET /api/analytics/responses
+
+### Certificates
+- GET /api/certificates
+- POST /api/certificates
+- DELETE /api/certificates/:id
+- GET /api/certificates/:id/download
+
+## Development Workflow
+
+1. Start MongoDB service
+2. Install dependencies (backend and frontend)
+3. Configure environment variables
+4. Start backend server: `npm start`
+5. Start frontend dev server: `npm run dev`
+6. Access application at http://localhost:5173
+
+## Testing
+
+### Backend Tests
+```bash
+cd backend
+npm test
+```
+
+### Frontend Tests
+```bash
+cd front-end/event-system
+npm test
+```
+
+## Production Deployment
+
+### Docker
+```bash
+docker-compose up -d
+```
+
+### Manual Deployment
+1. Build frontend: `npm run build`
+2. Configure production environment variables
+3. Start backend server with PM2 or similar
+4. Set up reverse proxy (nginx)
+5. Configure SSL certificates
+
+## Troubleshooting
+
+### Common Issues
+1. MongoDB connection errors - Check MongoDB service status
+2. Port conflicts - Change PORT in .env file
+3. CORS issues - Verify frontend URL in backend CORS config
+4. SurveyJS import errors - Check package versions
+5. Socket.io connection issues - Verify socket configuration
+
+### Debug Mode
+- Backend: Set NODE_ENV=development
+- Frontend: Use browser dev tools
+- Check console for errors
+- Verify API endpoints are accessible

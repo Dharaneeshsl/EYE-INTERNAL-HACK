@@ -16,21 +16,65 @@ export default function FormBuilder() {
   const [qrData, setQrData] = useState(null);
 
   useEffect(() => {
-    getForms().then(res => setForms(res.data || [])).catch(() => setToast('Failed to load forms'));
+    // Test backend connection first
+    fetch('http://localhost:5000/api/forms', { 
+      credentials: 'include',
+      method: 'GET'
+    })
+    .then(res => {
+      console.log('Backend connection test:', res.status, res.statusText);
+      if (!res.ok) {
+        throw new Error(`Backend not responding: ${res.status} ${res.statusText}`);
+      }
+      return res.json();
+    })
+    .then(data => {
+      console.log('Backend response:', data);
+      setForms(data.data || []);
+    })
+    .catch(error => {
+      console.error('Backend connection failed:', error);
+      setToast('Backend server not running! Please start the backend server on port 5000');
+    });
   }, []);
 
   const handleSave = async (surveyJson) => {
     setLoading(true);
     try {
-      await createForm({ title: surveyJson.title || 'Untitled', schema: surveyJson });
-      setToast('Form saved!');
+      console.log('Saving form:', surveyJson);
+      
+      const formData = {
+        title: surveyJson.title || 'Untitled Form', 
+        description: surveyJson.description || '',
+        questions: surveyJson.pages?.[0]?.elements || [],
+        settings: {
+          requiresLogin: false,
+          isAnonymous: true,
+          allowMultipleResponses: true,
+          isActive: true
+        }
+      };
+      
+      console.log('Form data being sent:', formData);
+      
+      const response = await createForm(formData);
+      console.log('Form saved successfully:', response);
+      
+      setToast('Form saved successfully!');
       const res = await getForms();
       setForms(res.data || []);
-    } catch {
-      setToast('Failed to save form');
+    } catch (error) {
+      console.error('Error saving form:', error);
+      console.error('Error details:', error.message, error.stack);
+      setToast('Failed to save form: ' + (error.message || 'Unknown error'));
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleFormUpdate = (surveyJson) => {
+    console.log('Form updated:', surveyJson);
+    setJson(surveyJson);
   };
 
   const handleCopyLink = async (formId) => {
@@ -72,11 +116,13 @@ export default function FormBuilder() {
     <div className="space-y-8">
       <h1 className="text-3xl font-bold mb-6">Form Builder</h1>
       <div className="bg-black border border-white rounded-2xl shadow-lg p-6 flex flex-col items-center justify-center min-h-[300px] w-full">
-        <SurveyBuilder onSave={handleSave} json={json} />
+        <SurveyBuilder onSave={handleFormUpdate} json={json} />
       </div>
       <div className="flex gap-4 mt-6">
         <button onClick={() => setPreview(true)} className="bg-black text-white rounded-2xl px-6 py-2 font-semibold hover:bg-white hover:text-black border border-white transition-all">Preview</button>
-        <button onClick={() => handleSave(json)} disabled={loading} className="bg-black text-white rounded-2xl px-6 py-2 font-semibold hover:bg-white hover:text-black border border-white transition-all">{loading ? 'Saving...' : 'Publish'}</button>
+        <div className="text-gray-400 text-sm flex items-center">
+          💡 Use the "Save Form" button in the form builder above to publish your form
+        </div>
       </div>
       <div className="mt-10">
         <h2 className="text-xl font-bold mb-4">Created Forms</h2>
@@ -121,10 +167,49 @@ export default function FormBuilder() {
         </table>
       </div>
       <Modal open={preview} onClose={() => setPreview(false)}>
-        <div className="w-[400px]">
-          <h2 className="text-xl font-bold mb-4">Form Preview</h2>
-          {/* TODO: Integrate SurveyForm for preview */}
-          <div className="text-gray-400">Preview coming soon...</div>
+        <div className="w-[600px] bg-black border border-white rounded-2xl p-6">
+          <h2 className="text-xl font-bold mb-4 text-white">Form Preview</h2>
+          {Object.keys(json).length > 0 ? (
+            <div className="space-y-4">
+              <div className="bg-gray-800 border border-white rounded-lg p-4">
+                <h3 className="text-lg font-semibold text-white mb-2">{json.title || 'Untitled Form'}</h3>
+                {json.description && (
+                  <p className="text-gray-300 text-sm mb-4">{json.description}</p>
+                )}
+                <div className="space-y-3">
+                  {json.pages?.[0]?.elements?.map((element, index) => (
+                    <div key={index} className="bg-gray-700 border border-gray-600 rounded p-3">
+                      <div className="text-white font-medium mb-2">
+                        {index + 1}. {element.title || 'Untitled Question'}
+                        {element.isRequired && <span className="text-red-400 ml-1">*</span>}
+                      </div>
+                      <div className="text-gray-300 text-sm mb-2">
+                        Type: {element.type}
+                      </div>
+                      {element.choices && (
+                        <div className="text-gray-400 text-sm">
+                          Options: {element.choices.join(', ')}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="text-center">
+                <button
+                  onClick={() => setPreview(false)}
+                  className="bg-white text-black rounded-lg px-4 py-2 font-semibold hover:bg-gray-200 transition-all"
+                >
+                  Close Preview
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center text-gray-400 py-8">
+              <div className="text-4xl mb-4">📝</div>
+              <p>No form created yet. Build your form first!</p>
+            </div>
+          )}
         </div>
       </Modal>
 
