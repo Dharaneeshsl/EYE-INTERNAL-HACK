@@ -10,12 +10,7 @@ class ApiError extends Error {
    * @param {boolean} isOperational - Whether the error is operational
    * @param {string} stack - Error stack trace
    */
-  constructor(
-    message,
-    statusCode,
-    isOperational = true,
-    stack = ''
-  ) {
+  constructor(message, statusCode = 500, isOperational = true, stack = '') {
     super(message);
     this.statusCode = statusCode;
     this.isOperational = isOperational;
@@ -30,54 +25,26 @@ class ApiError extends Error {
 }
 
 /**
- * 400 Bad Request Error
- * @extends ApiError
+ * Error factory function to create common HTTP errors
+ * @param {number} statusCode - HTTP status code
+ * @param {string} defaultMessage - Default error message
+ * @returns {class} Error class
  */
-class BadRequestError extends ApiError {
-  constructor(message = 'Bad Request') {
-    super(message, 400);
-  }
-}
+const createErrorClass = (statusCode, defaultMessage) => {
+  return class extends ApiError {
+    constructor(message = defaultMessage) {
+      super(message, statusCode);
+    }
+  };
+};
 
-/**
- * 401 Unauthorized Error
- * @extends ApiError
- */
-class UnauthenticatedError extends ApiError {
-  constructor(message = 'Not authenticated') {
-    super(message, 401);
-  }
-}
-
-/**
- * 403 Forbidden Error
- * @extends ApiError
- */
-class UnauthorizedError extends ApiError {
-  constructor(message = 'Not authorized') {
-    super(message, 403);
-  }
-}
-
-/**
- * 404 Not Found Error
- * @extends ApiError
- */
-class NotFoundError extends ApiError {
-  constructor(message = 'Resource not found') {
-    super(message, 404);
-  }
-}
-
-/**
- * 409 Conflict Error
- * @extends ApiError
- */
-class ConflictError extends ApiError {
-  constructor(message = 'Resource already exists') {
-    super(message, 409);
-  }
-}
+// Common HTTP error classes
+const BadRequestError = createErrorClass(400, 'Bad Request');
+const UnauthenticatedError = createErrorClass(401, 'Not authenticated');
+const UnauthorizedError = createErrorClass(403, 'Not authorized');
+const NotFoundError = createErrorClass(404, 'Resource not found');
+const ConflictError = createErrorClass(409, 'Resource already exists');
+const RateLimitError = createErrorClass(429, 'Too many requests, please try again later');
 
 /**
  * 422 Validation Error
@@ -91,16 +58,6 @@ class ValidationError extends ApiError {
   constructor(errors, message = 'Validation failed') {
     super(message, 422);
     this.errors = errors;
-  }
-}
-
-/**
- * 429 Too Many Requests Error
- * @extends ApiError
- */
-class RateLimitError extends ApiError {
-  constructor(message = 'Too many requests, please try again later') {
-    super(message, 429);
   }
 }
 

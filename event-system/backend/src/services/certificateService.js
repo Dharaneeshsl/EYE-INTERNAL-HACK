@@ -1,15 +1,9 @@
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
 import Certificate from '../models/Certificate.js';
 import Response from '../models/Response.js';
 import SentCertificate from '../models/SentCertificate.js';
 import emailService from './emailService.js';
 import { ApiError } from '../utils/errors.js';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 export class CertificateService {
   constructor() {
@@ -52,17 +46,18 @@ export class CertificateService {
     }
   }
 
-  async generateBatchCertificates({ certificateId, responseIds, data }) {
-    const results = [];
-    for (const responseId of responseIds) {
-      try {
-        const pdfBuffer = await this.generateCertificate({ certificateId, responseId, data });
-        results.push({ responseId, success: true, pdfBuffer, error: null });
-      } catch (error) {
-        results.push({ responseId, success: false, pdfBuffer: null, error: error.message });
-      }
-    }
-    return results;
+  async generateBatchCertificates({ certificateId, responseIds }) {
+    const results = await Promise.allSettled(
+      responseIds.map(async (responseId) => {
+        try {
+          const pdfBuffer = await this.generateCertificate({ certificateId, responseId });
+          return { responseId, success: true, pdfBuffer, error: null };
+        } catch (error) {
+          return { responseId, success: false, pdfBuffer: null, error: error.message };
+        }
+      })
+    );
+    return results.map(result => result.value || result.reason);
   }
 
   async sendCertificate({ certificateId, responseId, recipientEmail, pdfBuffer }) {

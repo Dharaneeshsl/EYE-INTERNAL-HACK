@@ -3,9 +3,10 @@
 import { NavLink } from 'react-router-dom';
 
 const navItems = [
-  { name: 'Dashboard', path: '/dashboard', icon: '📊' },
-  { name: 'Forms', path: '/forms', icon: '📝' },
-  { name: 'Certificates', path: '/certificates', icon: '🏆' },
+  { name: 'Dashboard', path: '/dashboard' },
+  { name: 'Forms', path: '/forms' },
+  { name: 'Certificates', path: '/certificates' },
+  { name: 'Events', path: '/events' },
 ];
 
 export default function Sidebar({ darkMode }) {
@@ -31,7 +32,6 @@ export default function Sidebar({ darkMode }) {
               }`
             }
           >
-            <span className="text-lg">{item.icon}</span>
             <span>{item.name}</span>
           </NavLink>
         ))}

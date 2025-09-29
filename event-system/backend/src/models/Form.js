@@ -19,7 +19,7 @@ const questionSchema = new Schema({
     op: { type: String, enum: ['eq', 'neq'] },
     val: Schema.Types.Mixed
   }
-});
+}, { _id: false });
 
 const formSettingsSchema = new mongoose.Schema({
   requiresLogin: Boolean,

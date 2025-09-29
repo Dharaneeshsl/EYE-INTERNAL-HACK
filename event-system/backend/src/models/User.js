@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
+import config from '../config/index.js';
 
 const userSchema = new mongoose.Schema(
   {
@@ -69,8 +70,8 @@ userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();
   
   try {
-    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
+    const saltRounds = config.security.bcryptSaltRounds;
+    this.password = await bcrypt.hash(this.password, saltRounds);
     next();
   } catch (error) {
     next(error);

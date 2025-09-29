@@ -1,22 +1,23 @@
 import session from 'express-session';
 import MongoStore from 'connect-mongo';
+import config from './index.js';
 
 export const sessionMiddleware = session({
-  secret: process.env.SESSION_SECRET || 'your_secure_session_secret_here',
-  name: 'sid',
+  secret: config.session.secret,
+  name: config.session.name,
   resave: false,
   saveUninitialized: false,
   store: MongoStore.create({
-    mongoUrl: process.env.MONGO_URI || 'mongodb://localhost:27017/',
+    mongoUrl: config.db.uri,
     collectionName: 'sessions',
-    ttl: 24 * 60 * 60, // 1 day
+    ttl: config.session.maxAge / 1000, // Convert to seconds
     autoRemove: 'native',
-    touchAfter: 24 * 3600 // time period in seconds
+    touchAfter: config.session.maxAge / 1000
   }),
   cookie: {
-    secure: false, // Always false for local dev, true only in production with HTTPS
+    secure: config.session.secure,
     httpOnly: true,
-    sameSite: 'lax', // Lax for local dev, 'none' only if using HTTPS and cross-origin
-    maxAge: 24 * 60 * 60 * 1000 // 1 day
+    sameSite: config.session.sameSite,
+    maxAge: config.session.maxAge
   }
 });

@@ -80,50 +80,72 @@ export class AnalyticsService {
    */
   static async getAggregatedStatistics() {
     try {
-      const [responses, forms] = await Promise.all([
-        Response.find({ complete: true }),
-        Form.find({ isPublished: true })
+      // Use aggregation for better performance
+      const [formStats, responseStats] = await Promise.all([
+        Form.aggregate([
+          { $match: { isPublished: true } },
+          { $count: 'totalForms' }
+        ]),
+        Response.aggregate([
+          { $match: { complete: true } },
+          {
+            $group: {
+              _id: null,
+              totalResponses: { $sum: 1 },
+              certificatesSent: { $sum: { $cond: ['$cert.sent', 1, 0] } },
+              responsesByDay: {
+                $push: {
+                  date: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+                  sentiment: '$sentiment.label'
+                }
+              }
+            }
+          }
+        ])
       ]);
 
-      const totalForms = forms.length;
-      const totalResponses = responses.length;
-      const averageResponsesPerForm = totalForms > 0 ? totalResponses / totalForms : 0;
-
-      const responsesByDay = responses.reduce((acc, response) => {
-        const date = response.createdAt.toISOString().split('T')[0];
-        acc[date] = (acc[date] || 0) + 1;
+      const totalForms = formStats[0]?.totalForms || 0;
+      const stats = responseStats[0] || { totalResponses: 0, certificatesSent: 0, responsesByDay: [] };
+      
+      const responsesByDay = stats.responsesByDay.reduce((acc, item) => {
+        acc[item.date] = (acc[item.date] || 0) + 1;
         return acc;
       }, {});
 
-      // Get forms with highest response rates
-      const formStats = await Promise.all(forms.map(async form => {
-        const responseCount = await Response.countDocuments({ formId: form._id });
-        return {
-          formId: form._id,
-          title: form.title,
-          responseCount
-        };
-      }));
-
-      // Sort forms by response count (descending) and get top 5
-      const topForms = [...formStats]
-        .sort((a, b) => b.responseCount - a.responseCount)
-        .slice(0, 5);
-
-      // Calculate overall sentiment distribution
-      const allResponses = await Response.find({ complete: true });
-      const sentimentStats = allResponses.reduce((acc, response) => {
-        const label = response.sentiment?.label || 'unknown';
+      const sentimentStats = stats.responsesByDay.reduce((acc, item) => {
+        const label = item.sentiment || 'unknown';
         acc[label] = (acc[label] || 0) + 1;
         return acc;
       }, {});
 
+      // Get top 5 forms by response count
+      const topForms = await Form.aggregate([
+        { $match: { isPublished: true } },
+        {
+          $lookup: {
+            from: 'responses',
+            localField: '_id',
+            foreignField: 'formId',
+            as: 'responses'
+          }
+        },
+        {
+          $project: {
+            formId: '$_id',
+            title: 1,
+            responseCount: { $size: '$responses' }
+          }
+        },
+        { $sort: { responseCount: -1 } },
+        { $limit: 5 }
+      ]);
+
       return {
         overview: {
           totalForms,
-          totalResponses,
-          averageResponsesPerForm: Math.round(averageResponsesPerForm * 100) / 100, // Round to 2 decimal places
-          certificatesSent: allResponses.filter(r => r.cert?.sent).length
+          totalResponses: stats.totalResponses,
+          averageResponsesPerForm: totalForms > 0 ? Math.round((stats.totalResponses / totalForms) * 100) / 100 : 0,
+          certificatesSent: stats.certificatesSent
         },
         responsesByDay,
         topForms,

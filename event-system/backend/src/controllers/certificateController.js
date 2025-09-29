@@ -19,25 +19,18 @@ export class CertificateController {
     try {
       const { formId, name, description, template, fieldMappings, emailTemplate, autoSend, autoSendDelay } = req.body;
 
-      // Validate form exists
-      const form = await Form.findById(formId);
-      if (!form) {
-        throw new ApiError('Form not found', 404);
-      }
+      // Validate form exists and check for existing certificate
+      const [form, existingCertificate] = await Promise.all([
+        Form.findById(formId),
+        Certificate.findOne({ formId })
+      ]);
 
-      // Check if certificate already exists for this form
-      const existingCertificate = await Certificate.findOne({ formId });
-      if (existingCertificate) {
-        throw new ApiError('Certificate already exists for this form', 400);
-      }
+      if (!form) throw new ApiError('Form not found', 404);
+      if (existingCertificate) throw new ApiError('Certificate already exists for this form', 400);
 
       // Validate template
-      const isValidTemplate = await certificateService.validateTemplate(
-        Buffer.from(template, 'base64')
-      );
-      if (!isValidTemplate) {
-        throw new ApiError('Invalid PDF template', 400);
-      }
+      const isValidTemplate = await certificateService.validateTemplate(Buffer.from(template, 'base64'));
+      if (!isValidTemplate) throw new ApiError('Invalid PDF template', 400);
 
       // Create certificate
       const certificate = await Certificate.create({
@@ -50,10 +43,7 @@ export class CertificateController {
         autoSend: autoSend || false,
         autoSendDelay: autoSendDelay || 0,
         createdBy: req.user._id
-      });
-
-      // Populate form data
-      await certificate.populate('formId', 'title');
+      }).populate('formId', 'title');
 
       res.status(201).json({
         success: true,

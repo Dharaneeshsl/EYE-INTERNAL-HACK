@@ -7,12 +7,13 @@ import Dashboard from './pages/Dashboard';
 import FormBuilder from './pages/FormBuilder';
 import FeedbackForm from './pages/FeedbackForm';
 import Certificates from './pages/Certificates';
+import Events from './pages/Events';
 import Settings from './pages/Settings';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import { useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
+import { EventProvider } from './context/EventContext';
 import ProtectedRoute from './components/layout/ProtectedRoute';
 import './App.css';
 
@@ -32,10 +33,11 @@ function AppShell() {
 							<Routes>
 								<Route path="/login" element={<Login />} />
 								<Route path="/register" element={<Register />} />
-								<Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-								<Route path="/forms" element={<ProtectedRoute><FormBuilder /></ProtectedRoute>} />
+                                <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+                                <Route path="/forms" element={<ProtectedRoute><FormBuilder /></ProtectedRoute>} />
 								<Route path="/feedback/:formId" element={<FeedbackForm />} />
-								<Route path="/certificates" element={<ProtectedRoute><Certificates /></ProtectedRoute>} />
+                                <Route path="/certificates" element={<ProtectedRoute><Certificates /></ProtectedRoute>} />
+								<Route path="/events" element={<ProtectedRoute><Events /></ProtectedRoute>} />
 								<Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
 								<Route path="/" element={<Navigate to="/login" />} />
 							</Routes>
@@ -51,7 +53,9 @@ function App() {
 	return (
 		<ThemeProvider>
 			<AuthProvider>
-				<AppShell />
+				<EventProvider>
+					<AppShell />
+				</EventProvider>
 			</AuthProvider>
 		</ThemeProvider>
 	);

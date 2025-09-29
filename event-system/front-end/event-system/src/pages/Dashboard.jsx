@@ -2,6 +2,7 @@
 // Black & white analytics dashboard shell
 
 import { useEffect, useState } from 'react';
+import { useEvent } from '../context/EventContext';
 import { getDashboardStats } from '../services/api';
 import Card from '../components/common/Card';
 import Loader from '../components/common/Loader';
@@ -11,8 +12,10 @@ export default function Dashboard() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const { activeEventId } = useEvent();
 
   useEffect(() => {
+    setLoading(true);
     getDashboardStats()
       .then((res) => {
         const overview = res?.data?.overview || res?.overview || res;
@@ -20,7 +23,7 @@ export default function Dashboard() {
       })
       .catch(() => setError('Failed to load stats'))
       .finally(() => setLoading(false));
-  }, []);
+  }, [activeEventId]);
 
   return (
     <div className="space-y-8">

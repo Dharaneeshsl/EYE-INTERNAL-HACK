@@ -1,5 +1,6 @@
 // Certificates.jsx
 import { useEffect, useState } from 'react';
+import { useEvent } from '../context/EventContext';
 import { getCertificates, uploadCertificateTemplate, createCertificate, getForms } from '../services/api';
 import FieldMapping from '../components/certificates/FieldMapping';
 import Loader from '../components/common/Loader';
@@ -9,6 +10,7 @@ import Modal from '../components/common/Modal';
 export default function Certificates() {
   const [certificates, setCertificates] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { activeEventId } = useEvent();
   const [toast, setToast] = useState('');
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
@@ -33,7 +35,7 @@ export default function Certificates() {
   useEffect(() => {
     loadCertificates();
     loadForms();
-  }, []);
+  }, [activeEventId]);
 
   const loadCertificates = async () => {
     try {

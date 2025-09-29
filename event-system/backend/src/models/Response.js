@@ -37,16 +37,14 @@ const responseSchema = new mongoose.Schema({
 
 // Calculate time spent before saving
 responseSchema.pre('save', function (next) {
-  if (typeof this.time !== 'number' && this.answers && this.answers.length > 0) {
-    const seconds = this.answers.reduce((total, answer) => {
+  if (typeof this.time !== 'number' && this.answers?.length > 0) {
+    this.time = this.answers.reduce((total, answer) => {
       if (answer.time?.start && answer.time?.end) {
-        const start = new Date(answer.time.start).getTime();
-        const end = new Date(answer.time.end).getTime();
-        return total + Math.max(0, Math.floor((end - start) / 1000));
+        const duration = Math.max(0, Math.floor((new Date(answer.time.end) - new Date(answer.time.start)) / 1000));
+        return total + duration;
       }
       return total;
     }, 0);
-    this.time = seconds;
   }
   next();
 });

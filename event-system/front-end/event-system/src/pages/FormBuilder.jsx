@@ -1,5 +1,6 @@
 // FormBuilder.jsx
 import React, { useState, useEffect, useCallback } from 'react';
+import { useEvent } from '../context/EventContext';
 import SurveyBuilder from '../components/forms/SurveyBuilder';
 import Modal from '../components/common/Modal';
 import { getForms, createForm, getFormQRCode, getFormById, updateForm, deleteForm } from '../services/api';
@@ -7,6 +8,7 @@ import Toast from '../components/common/Toast';
 
 export default function FormBuilder() {
   const [forms, setForms] = useState([]);
+  const { activeEventId } = useEvent();
   const [json, setJson] = useState({});
   const [preview, setPreview] = useState(false);
   const [toast, setToast] = useState('');
@@ -17,7 +19,11 @@ export default function FormBuilder() {
 
   useEffect(() => {
     // Test backend connection first
-    fetch('http://localhost:5000/api/forms', { 
+    const url = new URL('http://localhost:5000/api/forms');
+    try {
+      if (activeEventId) url.searchParams.set('eventId', activeEventId);
+    } catch {}
+    fetch(url.toString(), { 
       credentials: 'include',
       method: 'GET'
     })
@@ -36,7 +42,7 @@ export default function FormBuilder() {
       console.error('Backend connection failed:', error);
       setToast('Backend server not running! Please start the backend server on port 5000');
     });
-  }, []);
+  }, [activeEventId]);
 
   const handleSave = async (surveyJson) => {
     setLoading(true);
