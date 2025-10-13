@@ -84,6 +84,49 @@ export async function uploadCertificateTemplate(certificateId, file) {
   });
 }
 
+export async function deleteCertificate(certificateId) {
+  return apiRequest(`/certificates/${certificateId}`, {
+    method: 'DELETE'
+  });
+}
+
+export async function getCertificateById(certificateId) {
+  return apiRequest(`/certificates/${certificateId}`);
+}
+
+export async function getCertificateStats(certificateId) {
+  return apiRequest(`/certificates/${certificateId}/stats`);
+}
+
+export async function generateCertificate(certificateId, responseId) {
+  return fetch(`${API_BASE}/certificates/${certificateId}/generate`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: {},
+    body: JSON.stringify({ responseId })
+  }).then(async (res) => {
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || 'Failed to generate certificate');
+    }
+    return res.blob();
+  });
+}
+
+export async function sendCertificate(certificateId, payload) {
+  return apiRequest(`/certificates/${certificateId}/send`, {
+    method: 'POST',
+    body: JSON.stringify(payload)
+  });
+}
+
+export async function batchGenerateCertificates(certificateId, responseIds) {
+  return apiRequest(`/certificates/${certificateId}/batch-generate`, {
+    method: 'POST',
+    body: JSON.stringify({ certificateId, responseIds })
+  });
+}
+
 export async function getFormQRCode(formId) {
   return apiRequest(`/forms/${formId}/qr`);
 }

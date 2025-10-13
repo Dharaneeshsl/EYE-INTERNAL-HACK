@@ -60,6 +60,32 @@ export class CertificateService {
     return results.map(result => result.value || result.reason);
   }
 
+  async generatePreview(certificateId) {
+    try {
+      const certificate = await Certificate.findById(certificateId).populate('formId', 'title');
+      if (!certificate) {
+        throw new ApiError('Certificate template not found', 404);
+      }
+
+      const pdfDoc = await PDFDocument.load(Buffer.from(certificate.template, 'base64'));
+      const page = pdfDoc.getPages()[0];
+      const { width, height } = page.getSize();
+      const font = await this.getFont(certificate.fieldMappings);
+
+      // Use placeholder/sample values for preview
+      for (const mapping of certificate.fieldMappings) {
+        const sampleValue = mapping.pdfField || mapping.formField || 'Sample Text';
+        await this.applyFieldMapping(page, mapping, sampleValue, font, width, height);
+      }
+
+      const pdfBytes = await pdfDoc.save();
+      return Buffer.from(pdfBytes);
+    } catch (error) {
+      console.error('Certificate preview error:', error);
+      throw new ApiError('Failed to generate certificate preview', 500);
+    }
+  }
+
   async sendCertificate({ certificateId, responseId, recipientEmail, pdfBuffer }) {
     try {
       const certificate = await Certificate.findById(certificateId).populate('formId', 'title');
@@ -190,6 +216,11 @@ export class CertificateService {
   }
 
   getFieldValue(formField, data, response) {
+    // If answers come as an array of objects [{ qId, val, text }]
+    if (Array.isArray(data)) {
+      const match = data.find(a => a.qId === formField || a.name === formField);
+      if (match) return match.val || match.text || '';
+    }
     if (data && data[formField]) {
       return data[formField];
     }
@@ -205,6 +236,22 @@ export class CertificateService {
 
   async getSentCertificate(certificateId, responseId) {
     return SentCertificate.findOne({ certificate: certificateId, response: responseId });
+  }
+
+  async getCertificateStats(certificateId) {
+    const sent = await SentCertificate.find({ certificate: certificateId }).lean();
+    const stats = {
+      totalGenerated: sent.length,
+      totalSent: sent.length,
+      totalPending: 0,
+      sentByDate: {},
+      failedDeliveries: []
+    };
+    for (const s of sent) {
+      const date = (s.sentAt || s.createdAt)?.toISOString().split('T')[0];
+      if (date) stats.sentByDate[date] = (stats.sentByDate[date] || 0) + 1;
+    }
+    return stats;
   }
 
   async validateTemplate(templateBuffer) {

@@ -29,6 +29,9 @@ export class EmailService {
       if (!html) {
         html = this._compileTemplate(templateId, data);
         this.templateCache.set(templateId, html);
+      } else {
+        // Re-hydrate with data placeholders
+        html = this._replaceTemplateVariables(html, data);
       }
 
       const info = await this.transporter.sendMail({
@@ -95,6 +98,26 @@ export class EmailService {
       processedTemplate = processedTemplate.replace(regex, value);
     });
     return processedTemplate;
+  }
+
+  /**
+   * Compile built-in templates with minimal logic support
+   */
+  _compileTemplate(templateId, data) {
+    const templates = {
+      certificate: `
+        <div style="font-family: Arial, sans-serif; color: #222">
+          <h1 style="margin-bottom: 8px">Certificate of Completion</h1>
+          <p style="margin: 0 0 12px 0">Dear {{name}},</p>
+          <p style="margin: 0 0 12px 0">Thank you for participating in {{formTitle}}.</p>
+          <p style="margin: 0 0 12px 0">Your certificate is attached to this email.</p>
+          <hr style="border: none; border-top: 1px solid #ddd; margin: 16px 0"/>
+          <small>This is an automated message. Please do not reply.</small>
+        </div>
+      `
+    };
+    const tpl = templates[templateId] || '';
+    return this._replaceTemplateVariables(tpl, data || {});
   }
 
   /**

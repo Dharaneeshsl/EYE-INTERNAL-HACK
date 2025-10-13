@@ -1,7 +1,7 @@
 // Certificates.jsx
 import { useEffect, useState } from 'react';
 import { useEvent } from '../context/EventContext';
-import { getCertificates, uploadCertificateTemplate, createCertificate, getForms } from '../services/api';
+import { getCertificates, uploadCertificateTemplate, createCertificate, getForms, deleteCertificate as apiDeleteCertificate, generateCertificate as apiGenerateCertificate } from '../services/api';
 import FieldMapping from '../components/certificates/FieldMapping';
 import Loader from '../components/common/Loader';
 import Toast from '../components/common/Toast';
@@ -147,7 +147,7 @@ export default function Certificates() {
   const handleDeleteCertificate = async (certId) => {
     if (window.confirm('Are you sure you want to delete this certificate?')) {
       try {
-        // Here you would call the API to delete the certificate
+        await apiDeleteCertificate(certId);
         setToast('Certificate deleted successfully!');
         loadCertificates();
       } catch (error) {
@@ -158,7 +158,21 @@ export default function Certificates() {
 
   const handleDownloadCertificate = async (certId) => {
     try {
-      // Here you would call the API to download the certificate
+      // Use preview endpoint for now (server streams inline PDF)
+      const res = await fetch(`http://localhost:5000/api/certificates/${certId}/preview`, {
+        method: 'GET',
+        credentials: 'include'
+      });
+      if (!res.ok) throw new Error('Failed to fetch preview');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `certificate-${certId}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
       setToast('Certificate download started!');
     } catch (error) {
       setToast('Failed to download certificate');

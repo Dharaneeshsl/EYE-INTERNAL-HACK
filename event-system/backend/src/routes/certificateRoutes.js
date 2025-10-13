@@ -2,6 +2,7 @@ import express from 'express';
 import { isAuthenticated, isAdmin } from '../middleware/auth.js';
 import { uploadCertificateTemplate, handleUploadError } from '../middleware/upload.js';
 import { CertificateController } from '../controllers/certificateController.js';
+import { body } from 'express-validator';
 import { ApiError } from '../utils/errors.js';
 import Certificate from '../models/Certificate.js';
 
@@ -18,6 +19,10 @@ router.use(isAdmin);
  */
 router.post(
   '/',
+  [
+    body('name').isString().trim().notEmpty(),
+    body('formId').isString().notEmpty(),
+  ],
   (req, res, next) => {
     // Handle file upload
     uploadCertificateTemplate('template')(req, res, (err) => {
@@ -50,6 +55,7 @@ router.get('/', CertificateController.getCertificates);
  * @access  Private (Admin)
  */
 router.get('/:id', CertificateController.getCertificate);
+router.get('/:id/preview', CertificateController.previewCertificate);
 
 /**
  * @route   PUT /api/certificates/:id
@@ -58,6 +64,10 @@ router.get('/:id', CertificateController.getCertificate);
  */
 router.put(
   '/:id',
+  [
+    body('name').optional().isString().trim(),
+    body('description').optional().isString(),
+  ],
   (req, res, next) => {
     // Handle file upload for template updates
     uploadCertificateTemplate('template')(req, res, (err) => {

@@ -210,6 +210,30 @@ export class CertificateController {
   };
 
   /**
+   * Generate preview for certificate template
+   * GET /api/certificates/:id/preview
+   * @access Private (Admin)
+   */
+  static previewCertificate = async (req, res, next) => {
+    try {
+      const { id } = req.params;
+
+      const certificate = await Certificate.findById(id);
+      if (!certificate) {
+        throw new ApiError('Certificate not found', 404);
+      }
+
+      const pdfBuffer = await certificateService.generatePreview(id);
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `inline; filename="certificate-preview-${id}.pdf"`);
+      res.send(pdfBuffer);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /**
    * Send certificate via email
    * POST /api/certificates/:id/send
    * @access Private (Admin)

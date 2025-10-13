@@ -4,6 +4,7 @@ import { Server } from 'socket.io';
 import helmet from 'helmet';
 import cors from 'cors';
 import morgan from 'morgan';
+import rateLimit from 'express-rate-limit';
 import { sessionMiddleware } from './config/session.js';
 import { initializeSocket } from './services/socketService.js';
 import { connectDB } from './config/db.js';
@@ -77,6 +78,15 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: config.cors.credentials
 }));
+
+// Global rate limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false
+});
+app.use('/api/', limiter);
 
 // Body parsing middleware
 app.use(express.json());
