@@ -1,4 +1,5 @@
 import express from 'express';
+import mongoose from 'mongoose';
 import QRCode from 'qrcode';
 import { Parser } from 'json2csv';
 import { isAuthenticated, isAdmin } from '../middleware/auth.js';
@@ -60,7 +61,7 @@ router.post('/', isAuthenticated, handleAsync(async (req, res) => {
     settings: incoming.settings,
     isPublished: incoming.isPublished === true,
     questions,
-    createdBy: req.user.id
+    ...(req.user?.id ? { createdBy: req.user.id } : {})
   };
 
   const form = await Form.create(payload);
@@ -112,17 +113,32 @@ router.put('/:id', isAuthenticated, isAdmin, async (req, res, next) => {
  * DELETE /api/forms/:id
  * @access Private (Admin)
  */
-router.delete('/:id', isAuthenticated, isAdmin, async (req, res, next) => {
+// Allow owner or admin to delete
+router.delete('/:id', isAuthenticated, async (req, res, next) => {
   try {
-    const form = await Form.findById(req.params.id);
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new ApiError('Invalid form id', 400);
+    }
+    const form = await Form.findById(id);
 
     if (!form) {
       throw new ApiError('Form not found', 404);
     }
 
-    // Delete all responses
-    await Response.deleteMany({ formId: form._id });
-    await form.remove();
+    // Allow deletion if user is owner; if legacy form has no createdBy, allow any authenticated user
+    const isOwner = req.user && form.createdBy && String(form.createdBy) === String(req.user.id);
+    const legacyNoOwner = !form.createdBy;
+    const admin = req.user && req.user.role === 'admin';
+    if (!isOwner && !legacyNoOwner && !admin) {
+      throw new ApiError('Not authorized to delete this form', 403);
+    }
+
+    // Delete all responses and the form (best-effort)
+    await Promise.allSettled([
+      Response.deleteMany({ formId: form._id }),
+      form.deleteOne()
+    ]);
 
     res.json({
       success: true,

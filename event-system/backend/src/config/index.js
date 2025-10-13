@@ -1,15 +1,18 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
+const isSrv = (process.env.MONGO_URI || '').startsWith('mongodb+srv://');
 const config = {
-  app: { port: +process.env.PORT },
+  app: { port: parseInt(process.env.PORT, 10) || 5000 },
   db: {
-    uri: process.env.MONGO_URI ||  'mongodb://localhost:27017/',
+    uri: process.env.MONGO_URI || 'mongodb://localhost:27017/event-system',
     options: { 
       useNewUrlParser: true, 
       useUnifiedTopology: true,
-      tls: true,
-      tlsAllowInvalidCertificates: true
+      // For Atlas SRV, TLS is on by default; allow explicit override via env
+      tls: process.env.MONGO_TLS ? process.env.MONGO_TLS === 'true' : isSrv,
+      tlsAllowInvalidCertificates: process.env.MONGO_TLS_ALLOW_INVALID === 'true',
+      ...(process.env.MONGO_DB_NAME ? { dbName: process.env.MONGO_DB_NAME } : {})
     }
   },
   session: {

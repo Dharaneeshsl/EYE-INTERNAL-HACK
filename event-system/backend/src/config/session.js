@@ -9,6 +9,7 @@ export const sessionMiddleware = session({
   saveUninitialized: false,
   store: MongoStore.create({
     mongoUrl: config.db.uri,
+    dbName: process.env.MONGO_DB_NAME, // optional explicit db name for Atlas
     collectionName: 'sessions',
     ttl: config.session.maxAge / 1000, // Convert to seconds
     autoRemove: 'native',
