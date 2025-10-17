@@ -1,3 +1,24 @@
+Environment variables
+
+Create a .env file with:
+
+- PORT=5000
+- MONGO_URI=mongodb://localhost:27017/event-system
+- MONGO_DB_NAME=event-system
+- SESSION_SECRET=change_me
+- SESSION_NAME=sid
+- CORS_ORIGIN=http://localhost:5173
+- SMTP_HOST=localhost
+- SMTP_PORT=1025
+- EMAIL_FROM=no-reply@example.com
+- EMAIL_FROM_NAME=Event System
+- LOG_LEVEL=debug
+- WS_PATH=/socket.io
+
+Run
+
+- npm install
+- npm run dev
 # EYE-INTERNAL-HACK Backend
 
 ## Setup Instructions

@@ -23,7 +23,7 @@ export default function Login() {
     setError('');
     try {
       const res = await loginApi(email, password);
-      login(res.token, res.user);
+      login(res.user);
       navigate('/dashboard');
     } catch (err) {
       setError('Invalid credentials');

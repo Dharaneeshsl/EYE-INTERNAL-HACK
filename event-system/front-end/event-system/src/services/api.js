@@ -1,6 +1,6 @@
 // api.js
 // Centralized API service for backend communication
-const API_BASE = 'http://localhost:5000/api';
+const API_BASE = (typeof window !== 'undefined' && window.__API_BASE__) || import.meta.env.VITE_API_BASE || 'http://localhost:5000/api';
 
 // Generic API request function to reduce redundancy
 async function apiRequest(endpoint, options = {}) {
@@ -39,6 +39,10 @@ export async function login(email, password) {
     method: 'POST',
     body: JSON.stringify({ email, password })
   });
+}
+
+export async function logout() {
+  return apiRequest('/auth/logout', { method: 'POST' });
 }
 
 export async function register(name, email, password) {

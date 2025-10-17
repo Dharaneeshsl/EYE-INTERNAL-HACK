@@ -10,6 +10,9 @@ import User from '../models/User.js';
 import SentCertificate from '../models/SentCertificate.js';
 import certificateService from '../services/certificateService.js';
 import { ApiError } from '../utils/errors.js';
+import { body, param } from 'express-validator';
+import validate from '../middleware/validate.js';
+import { FormController } from '../controllers/formController.js';
 
 const router = express.Router();
 
@@ -17,96 +20,43 @@ const handleAsync = fn => (req, res, next) => fn(req, res, next).catch(next);
 
 // Simplified form operations
 // Allow any authenticated user to create forms (was admin-only)
-router.post('/', isAuthenticated, handleAsync(async (req, res) => {
-  // Transform incoming SurveyBuilder-style questions to our schema
-  const incoming = { ...req.body };
-  const elements = Array.isArray(incoming.questions) && incoming.questions.length > 0 && incoming.questions[0]?.type
-    ? incoming.questions
-    : Array.isArray(incoming.pages?.[0]?.elements)
-      ? incoming.pages[0].elements
-      : incoming.questions;
-
-  const typeMap = {
-    text: 'text',
-    comment: 'textarea',
-    radiogroup: 'radio',
-    checkbox: 'checkbox',
-    dropdown: 'dropdown',
-    rating: 'rating',
-    scale: 'scale',
-    date: 'date',
-    email: 'email'
-  };
-
-  const questions = Array.isArray(elements)
-    ? elements.map((el, idx) => ({
-        qId: el.name || `q_${idx + 1}`,
-        type: typeMap[el.type] || 'text',
-        text: el.title || el.text || `Question ${idx + 1}`,
-        desc: el.description,
-        req: Boolean(el.isRequired),
-        opts: Array.isArray(el.choices)
-          ? el.choices.map((c, i) =>
-              typeof c === 'string'
-                ? { val: String(i + 1), lbl: c }
-                : { val: String(c.value ?? i + 1), lbl: String(c.text ?? c.label ?? '') }
-            )
-          : []
-      }))
-    : [];
-
-  const payload = {
-    title: incoming.title,
-    description: incoming.description,
-    settings: incoming.settings,
-    isPublished: incoming.isPublished === true,
-    questions,
-    ...(req.user?.id ? { createdBy: req.user.id } : {})
-  };
-
-  const form = await Form.create(payload);
-  res.status(201).json({ data: form });
-}));
+router.post(
+  '/',
+  isAuthenticated,
+  [
+    body('title').isString().trim().notEmpty(),
+    body('description').optional().isString(),
+    body('settings').optional().isObject(),
+    body('questions').optional()
+  ],
+  validate,
+  FormController.create
+);
 
 // Simplified form retrieval
 // Allow any authenticated user to list forms (consider scoping by owner later)
-router.get('/', isAuthenticated, handleAsync(async (req, res) => {
-  const forms = await Form.find().select('title createdAt responseCount').sort('-createdAt');
-  res.json({ data: forms });
-}));
+router.get('/', isAuthenticated, FormController.list);
 
-router.get('/:id', handleAsync(async (req, res) => {
-  const form = await Form.findById(req.params.id).select('-settings.redirectUrl');
-  if (!form) throw new ApiError('Form not found', 404);
-  if (form.settings?.requiresLogin && !req.user) throw new ApiError('Auth required', 401);
-  res.json({ data: form });
-}));
+router.get('/:id', [param('id').isString().notEmpty()], validate, FormController.get);
 
 /**
  * Update a form
  * PUT /api/forms/:id
  * @access Private (Admin)
  */
-router.put('/:id', isAuthenticated, isAdmin, async (req, res, next) => {
-  try {
-    const form = await Form.findByIdAndUpdate(
-      req.params.id,
-      { ...req.body },
-      { new: true, runValidators: true }
-    );
-
-    if (!form) {
-      throw new ApiError('Form not found', 404);
-    }
-
-    res.json({
-      success: true,
-      data: form
-    });
-  } catch (error) {
-    next(error);
-  }
-});
+router.put(
+  '/:id',
+  isAuthenticated,
+  isAdmin,
+  [
+    param('id').isString().notEmpty(),
+    body('title').optional().isString(),
+    body('description').optional().isString(),
+    body('settings').optional().isObject()
+  ],
+  validate,
+  FormController.update
+);
 
 /**
  * Delete a form
@@ -114,40 +64,7 @@ router.put('/:id', isAuthenticated, isAdmin, async (req, res, next) => {
  * @access Private (Admin)
  */
 // Allow owner or admin to delete
-router.delete('/:id', isAuthenticated, async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      throw new ApiError('Invalid form id', 400);
-    }
-    const form = await Form.findById(id);
-
-    if (!form) {
-      throw new ApiError('Form not found', 404);
-    }
-
-    // Allow deletion if user is owner; if legacy form has no createdBy, allow any authenticated user
-    const isOwner = req.user && form.createdBy && String(form.createdBy) === String(req.user.id);
-    const legacyNoOwner = !form.createdBy;
-    const admin = req.user && req.user.role === 'admin';
-    if (!isOwner && !legacyNoOwner && !admin) {
-      throw new ApiError('Not authorized to delete this form', 403);
-    }
-
-    // Delete all responses and the form (best-effort)
-    await Promise.allSettled([
-      Response.deleteMany({ formId: form._id }),
-      form.deleteOne()
-    ]);
-
-    res.json({
-      success: true,
-      data: {}
-    });
-  } catch (error) {
-    next(error);
-  }
-});
+router.delete('/:id', isAuthenticated, [param('id').isString().notEmpty()], validate, FormController.remove);
 
 /**
  * Submit a form response

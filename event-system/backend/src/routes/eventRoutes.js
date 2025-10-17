@@ -1,49 +1,52 @@
 import express from 'express';
 import { isAuthenticated, isAdmin } from '../middleware/auth.js';
-import Event from '../models/Event.js';
-import Club from '../models/Club.js';
-import { ApiError } from '../utils/errors.js';
+import { body, query } from 'express-validator';
+import { EventController } from '../controllers/eventController.js';
+import validate from '../middleware/validate.js';
 
 const router = express.Router();
 router.use(isAuthenticated);
 router.use(isAdmin);
 
-router.post('/', async (req, res, next) => {
-  try {
-    const { clubId, name, description, startDate, endDate, location } = req.body;
-    const club = await Club.findById(clubId);
-    if (!club) throw new ApiError('Club not found', 404);
-    const event = await Event.create({ clubId, name, description, startDate, endDate, location });
-    res.status(201).json({ success: true, data: event });
-  } catch (e) { next(e); }
-});
+router.post(
+  '/',
+  [
+    body('clubId').isString().notEmpty(),
+    body('name').isString().trim().notEmpty(),
+    body('description').optional().isString(),
+    body('startDate').optional().isISO8601(),
+    body('endDate').optional().isISO8601(),
+    body('location').optional().isString()
+  ],
+  validate,
+  EventController.create
+);
 
-router.get('/', async (req, res, next) => {
-  try {
-    const { clubId, active } = req.query;
-    const q = {};
-    if (clubId) q.clubId = clubId;
-    if (active === 'true') q.isActive = true; if (active === 'false') q.isActive = false;
-    const events = await Event.find(q).sort('-createdAt');
-    res.json({ success: true, data: events });
-  } catch (e) { next(e); }
-});
+router.get(
+  '/',
+  [
+    query('clubId').optional().isString(),
+    query('active').optional().isIn(['true', 'false'])
+  ],
+  validate,
+  EventController.list
+);
 
-router.put('/:id', async (req, res, next) => {
-  try {
-    const event = await Event.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
-    if (!event) throw new ApiError('Event not found', 404);
-    res.json({ success: true, data: event });
-  } catch (e) { next(e); }
-});
+router.put(
+  '/:id',
+  [
+    body('name').optional().isString().trim(),
+    body('description').optional().isString(),
+    body('startDate').optional().isISO8601(),
+    body('endDate').optional().isISO8601(),
+    body('location').optional().isString(),
+    body('isActive').optional().isBoolean()
+  ],
+  validate,
+  EventController.update
+);
 
-router.delete('/:id', async (req, res, next) => {
-  try {
-    const event = await Event.findByIdAndUpdate(req.params.id, { isActive: false }, { new: true });
-    if (!event) throw new ApiError('Event not found', 404);
-    res.json({ success: true, message: 'Event archived', data: event });
-  } catch (e) { next(e); }
-});
+router.delete('/:id', EventController.archive);
 
 export default router;
 

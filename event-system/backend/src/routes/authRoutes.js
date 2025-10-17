@@ -1,17 +1,15 @@
 import express from 'express';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import User from '../models/User.js';
 import { UnauthenticatedError, ApiError } from '../utils/errors.js';
 
 const router = express.Router();
-// Profile route
-router.get('/profile', (req, res, next) => {
+// Get current profile
+router.get('/profile', (req, res) => {
   if (!req.session.user) {
     return res.status(401).json({ success: false, message: 'Not authenticated' });
   }
-  res.json({
-    user: req.session.user
-  });
+  res.json({ user: req.session.user });
 });
 
 // Register route
@@ -76,24 +74,35 @@ router.post('/logout', (req, res) => {
     if (err) {
       return res.status(500).json({ error: 'Could not log out' });
     }
-    res.clearCookie('connect.sid'); // Clear session cookie
+    const cookieName = process.env.SESSION_NAME || 'sid';
+    res.clearCookie(cookieName);
     res.json({ message: 'Logged out successfully' });
   });
 });
 
 
-// Get current user route
-router.get('/me', (req, res) => {
-  if (!req.session.user) {
-    return res.status(401).json({ error: 'Not authenticated' });
-  }
-  res.json({ user: req.session.user });
-});
+// Update profile basic fields
+router.put('/profile', async (req, res, next) => {
+  try {
+    if (!req.session.user) {
+      return res.status(401).json({ success: false, message: 'Not authenticated' });
+    }
+    const { name, password } = req.body || {};
+    const user = await User.findById(req.session.user.id).select('+password');
+    if (!user) throw new ApiError('User not found', 404);
 
-// Alias for /me to support /profile route
-import { isAuthenticated } from '../middleware/auth.js';
-router.get('/profile', isAuthenticated, (req, res) => {
-  res.json({ user: req.session.user });
+    if (typeof name === 'string' && name.trim()) user.name = name.trim();
+    if (typeof password === 'string' && password.length >= 8) {
+      user.password = password; // pre-save hook will hash
+    }
+    await user.save();
+
+    // refresh session snapshot
+    req.session.user = { id: user._id, email: user.email, role: user.role };
+    res.json({ user: req.session.user });
+  } catch (error) {
+    next(error);
+  }
 });
 
 export default router;

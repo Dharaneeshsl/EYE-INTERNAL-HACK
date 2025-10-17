@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { getToken, saveToken, clearToken } from '../services/auth';
 import { fetchUserProfile } from '../services/user';
+import { logout as apiLogout } from '../services/api';
 
 const AuthContext = createContext();
 
@@ -9,24 +9,18 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = getToken();
-    if (token) {
-      fetchUserProfile()
-        .then(setUser)
-        .catch(() => setUser(null))
-        .finally(() => setLoading(false));
-    } else {
-      setLoading(false);
-    }
+    fetchUserProfile()
+      .then(setUser)
+      .catch(() => setUser(null))
+      .finally(() => setLoading(false));
   }, []);
 
-  const login = (token, userData) => {
-    saveToken(token);
+  const login = (userData) => {
     setUser(userData);
   };
 
-  const logout = () => {
-    clearToken();
+  const logout = async () => {
+    try { await apiLogout(); } catch {}
     setUser(null);
   };
 

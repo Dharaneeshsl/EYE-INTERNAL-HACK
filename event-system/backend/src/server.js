@@ -2,9 +2,14 @@ import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import helmet from 'helmet';
+import compression from 'compression';
 import cors from 'cors';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
+import logger from './utils/logger.js';
+import { errorSanitizer } from './middleware/errorSanitizer.js';
+import { requestLogger } from './middleware/requestLogger.js';
+import { sanitize } from './middleware/sanitize.js';
 import { sessionMiddleware } from './config/session.js';
 import { initializeSocket } from './services/socketService.js';
 import { connectDB } from './config/db.js';
@@ -13,6 +18,7 @@ import authRoutes from './routes/authRoutes.js';
 import certificateRoutes from './routes/certificateRoutes.js';
 import analyticsRoutes from './routes/analyticsRoutes.js';
 import eventRoutes from './routes/eventRoutes.js';
+import docsRoutes from './routes/docsRoutes.js';
 import config from './config/index.js';
 
 const app = express();
@@ -21,10 +27,13 @@ const server = createServer(app);
 // Set up WebSocket server with session handling
 const io = new Server(server, {
   cors: {
-    origin: config.cors.origin || 'http://localhost:5174',
+    origin: config.cors.origin || 'http://localhost:5173',
     methods: ['GET', 'POST'],
     credentials: true
-  }
+  },
+  path: config.websocket?.path || '/socket.io',
+  pingTimeout: config.websocket?.pingTimeout || 30000,
+  pingInterval: config.websocket?.pingInterval || 25000
 });
 
 // Convert a middleware to Socket.IO middleware
@@ -71,6 +80,9 @@ app.use(helmet({
   }
 }));
 
+// Compression
+app.use(compression());
+
 // CORS configuration
 app.use(cors({
   origin: config.cors.origin || 'http://localhost:5173',
@@ -91,6 +103,8 @@ app.use('/api/', limiter);
 // Body parsing middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(sanitize);
+app.use(requestLogger);
 
 // Sessions (required for auth middleware to work on HTTP routes)
 app.use(sessionMiddleware);
@@ -106,11 +120,26 @@ app.use('/api/auth', authRoutes);
 app.use('/api/certificates', certificateRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/events', eventRoutes);
+app.use('/api/docs', docsRoutes);
 
-// Health check endpoint
-app.get('/health', (req, res) => {
+// Health check endpoint with simple dependency checks
+app.get('/health', async (req, res) => {
+  const checks = { db: false, email: false };
+  try {
+    // DB check
+    const mongoose = (await import('mongoose')).default;
+    checks.db = mongoose.connection.readyState === 1;
+  } catch (_) {}
+
+  try {
+    // Email check
+    const { default: emailService } = await import('./services/emailService.js');
+    checks.email = await emailService.verifyConnection();
+  } catch (_) {}
+
   res.status(200).json({
-    status: 'ok',
+    status: checks.db ? 'ok' : 'degraded',
+    checks,
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     environment: process.env.NODE_ENV
@@ -128,26 +157,16 @@ app.use((req, res) => {
 
 // Error handler
 app.use((err, req, res, next) => {
-  console.error('Error:', err);
-  
-  const statusCode = err.statusCode || 500;
-  const message = err.message || 'Internal Server Error';
-  
-  res.status(statusCode).json({
-    success: false,
-    message,
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
-  });
+  errorSanitizer(err, req, res, next);
 });
 
 // Start server
 const HOST = '0.0.0.0';
 const PORT = config.app.port;
 server.listen(PORT, HOST, () => {
-  console.log(`\n🚀 Server running in ${process.env.NODE_ENV || 'development'} mode`);
-  console.log(`🔗 API URL: http://${HOST}:${PORT}`);
-  console.log(`🌐 WebSocket URL: ws://${HOST}:${PORT}/socket.io\n`);
-  console.log('Press CTRL+C to stop the server\n');
+  logger.info(`Server running in ${process.env.NODE_ENV || 'development'} mode`);
+  logger.info(`API URL: http://${HOST}:${PORT}`);
+  logger.info(`WebSocket URL: ws://${HOST}:${PORT}/socket.io`);
 });
 
 // Handle unhandled promise rejections
